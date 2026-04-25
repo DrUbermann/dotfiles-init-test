@@ -1,0 +1,2 @@
+[hooks.init.pre]
+	script = command = {{ joinPath .chezmoi.workingTree ".init_script.sh" | quote }}
