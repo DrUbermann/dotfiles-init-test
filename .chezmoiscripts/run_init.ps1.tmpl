@@ -1,9 +1,9 @@
 {{- if ne .chezmoi.os "windows" -}}
 #!/bin/sh
-echo "Running 'init.ps1.tmpl' as a posix shell script."
+echo "Running 'run_init.ps1.tmpl' as a posix shell script."
 
 {{- else -}}
 #! /usr/bin/env pwsh
-Write-Output "Running 'init.ps1.tmpl' as a powershell script."
+Write-Output "Running 'run_init.ps1.tmpl' as a powershell script."
 
 {{- end -}}
