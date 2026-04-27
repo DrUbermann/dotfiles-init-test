@@ -13,5 +13,5 @@ persistentState = {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "ch
 [hooks.apply.pre]
 	script = {{ joinPath .chezmoi.workingTree ".init_script.sh" | quote }}
 
-[hooks.apply.post]
-	script = {{ joinPath .chezmoi.workingTree ".init_script_post.sh" | quote }}
+# [hooks.apply.post]
+# 	script = {{ joinPath .chezmoi.workingTree ".init_script_post.sh" | quote }}
