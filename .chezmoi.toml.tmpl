@@ -8,7 +8,7 @@
 {{- $ephem := true -}}  {{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
 
 sourceDir = {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
-persistentState = {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.boltdb" | quote }}
+persistentState = {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 
 [hooks.apply.pre]
 	script = {{ joinPath .chezmoi.workingTree ".init_script.sh" | quote }}
