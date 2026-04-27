@@ -7,7 +7,7 @@
 {{/* Declare prompt variables */}}
 {{- $ephem := true -}}  {{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
 
-sourceDir = {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
+#sourceDir = {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
 persistentState = {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 
 [hooks.apply.pre]
