@@ -1,0 +1,11 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/bin/sh
+mv {{ joinPath (dir .chezmoi.sourceDir) "chezmoi" | quote }} {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
+mkdir {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
+mv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
+
+{{- else -}}
+#! /usr/bin/env pwsh
+Write-Output "Running 'run_after_init.ps1.tmpl' as a powershell script."
+
+{{- end -}}
