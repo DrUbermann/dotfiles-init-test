@@ -1,12 +1,26 @@
 {{- if ne .chezmoi.os "windows" -}}
 #!/bin/sh
-mv -v {{ .chezmoi.sourceDir }} {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
+
+#mv -v {{ .chezmoi.sourceDir }} {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
 mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
-mv -v {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
-rm -v $0
+#mv -v {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
+
+printf "Main dotfiles github PAT (leave blank to fall back to Bitwarden): " >&2
+stty -echo
+trap 'stty echo' EXIT INT TERM
+read -r password
+stty echo
+if [ -z "$password" ]; then
+    password="$(./oneoff_bitwarden.sh get password 'dotfiles PAT')"
+fi
+
+$HOME/bin/chezmoi --config={{ joinPath (dir .chezmoi.configFile) "chezmoi.toml" | quote }} init --config-path={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} --purge-binary --purge --depth=1 DrUbermann/dotfiles-test
+
+
+#exec rm -vi "$(dir "$0")"/*
 
 {{- else -}}
 #!/usr/bin/env pwsh
-Write-Output "Running 'run_after_init.ps1.tmpl' as a powershell script."
+Write-Output "Running 'executable_init.ps1.tmpl' as a powershell script."
 
 {{- end -}}
