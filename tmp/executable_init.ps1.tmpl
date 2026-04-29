@@ -1,12 +1,15 @@
 {{- if ne .chezmoi.os "windows" -}}
 #!/bin/sh
 
+set -eu
+
 #mv -v {{ .chezmoi.sourceDir }} {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
 mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 #mv -v {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 
 #cd "$(dirname "$0")"
 cd "$(cd "$(dirname "$0")" && pwd)"
+pwd
 
 printf "Main dotfiles github PAT (leave blank to fall back to Bitwarden): " >&2
 stty -echo
