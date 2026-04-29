@@ -6,9 +6,24 @@
 
 {{/* Declare prompt variables */}}
 {{- $ephem := true -}}  {{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
+{{- $headless := true -}}  {{/* true if this machine does not have a screen and keyboard */}}
 
-sourceDir = {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
-persistentState = {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
+{{- if stdinIsATTY -}}
+{{-   $ephem = promptBoolOnce . "ephem" "ephemeral" true -}}
+{{-   $headless = promptBoolOnce . "headless" "headless" false -}}
+{{- end -}}
+
+{{- "" }}
+#sourceDir = {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
+#persistentState = {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
+
+[data]
+    ephem = {{ $ephem }}
+    headless = {{ $headless }}
+
+[scriptEnv]
+    EPHEM = {{ $ephem | quote }}
+    HEADLESS = {{ $headless | quote }}
 
 [hooks.apply.pre]
 	script = {{ joinPath .chezmoi.workingTree ".init_script.sh" | quote }}
