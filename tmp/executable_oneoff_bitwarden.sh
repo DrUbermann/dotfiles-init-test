@@ -5,6 +5,7 @@
 TMPDIR="${TMPDIR:-/tmp}/bw.$$"
 trap 'rm -rf "${TMPDIR}"' EXIT INT TERM
 
+mkdir "$TMPDIR"
 touch "$TMPDIR/data.json"
 export BITWARDENCLI_APPDATA_DIR="$TMPDIR"
 
