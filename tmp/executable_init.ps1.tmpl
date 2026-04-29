@@ -6,6 +6,7 @@ mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 #mv -v {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 
 cd "$(dir "$0")"
+pwd
 
 printf "Main dotfiles github PAT (leave blank to fall back to Bitwarden): " >&2
 stty -echo
