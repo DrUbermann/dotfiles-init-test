@@ -5,13 +5,15 @@
 mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 #mv -v {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 
-cd "$(dirname "$0")"
+#cd "$(dirname "$0")"
+cd "$(cd "$(dirname "$0")" && pwd)"
 
 printf "Main dotfiles github PAT (leave blank to fall back to Bitwarden): " >&2
 stty -echo
 trap 'stty echo' EXIT INT TERM
 read -r password
 stty echo
+printf '\n' >&2
 if [ -z "$password" ]; then
     password="$(./oneoff_bitwarden.sh get password 'dotfiles PAT')"
 fi
@@ -30,7 +32,8 @@ $HOME/bin/chezmoi purge -P
 mkdir -p {{ dir .chezmoi.configFile | quote }}
 ln -s {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} {{ .chezmoi.configFile }}
 
-exec rm -vi ./*
+#exec rm -vi ./*
+exec rm -vi "$(cd "$(dirname "$0")" && pwd)"/*
 
 {{- else -}}
 #!/usr/bin/env pwsh

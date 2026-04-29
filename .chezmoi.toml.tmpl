@@ -21,9 +21,9 @@
     ephem = {{ $ephem }}
     headless = {{ $headless }}
 
-[scriptEnv]
-    EPHEM = {{ $ephem | quote }}
-    HEADLESS = {{ $headless | quote }}
+# [scriptEnv]
+#     EPHEM = {{ $ephem | quote }}
+#     HEADLESS = {{ $headless | quote }}
 
 [hooks.apply.pre]
 	script = {{ joinPath .chezmoi.workingTree ".init_script.sh" | quote }}
