@@ -5,7 +5,7 @@
 mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 #mv -v {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 
-cd "$(dir "$0")"
+cd "$(dirname "$0")"
 pwd
 
 printf "Main dotfiles github PAT (leave blank to fall back to Bitwarden): " >&2
@@ -31,7 +31,7 @@ $HOME/bin/chezmoi purge -P
 mkdir -p {{ dir .chezmoi.configFile | quote }}
 ln -s {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} {{ .chezmoi.configFile }}
 
-exec rm -vi "$(dir "$0")"/*
+exec rm -vi "$(dirname "$0")"/*
 
 {{- else -}}
 #!/usr/bin/env pwsh
