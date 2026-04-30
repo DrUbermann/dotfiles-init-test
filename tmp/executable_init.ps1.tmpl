@@ -15,16 +15,18 @@ cd "$(cd "$(dirname "$0")" && pwd)"
 printf "Main dotfiles github login PAT (leave blank to fall back to Bitwarden): " >&2
 stty -echo
 trap 'stty echo' EXIT INT TERM
-read -r PAT
+read -r GITHUB_PAT
 stty echo
 printf '\n' >&2
-if [ -z "$PAT" ]; then
+if [ -z "$GITHUB_PAT" ]; then
     printf '%s\n' "Enter login details for Bitwarden:"
-    PAT="$(./oneoff_bitwarden.sh get password 'dotfiles PAT')"
+    GITHUB_PAT="$(./oneoff_bitwarden.sh get password 'dotfiles PAT')"
 #     . ./oneoff_bitwarden.sh
-#     PAT="$("$bw" get password 'dotfiles PAT')"
+#     GITHUB_PAT="$("$bw" get password 'dotfiles PAT')"
 fi
 
+GIT_ASKPASS=./git_askpass.sh
+#export GITHUB_PAT
 $HOME/bin/chezmoi \
     --config={{ joinPath (dir .chezmoi.configFile) "chezmoi.toml" | quote }} \
     --source={{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }} \
@@ -32,7 +34,8 @@ $HOME/bin/chezmoi \
     init \
     --config-path={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} \
     --depth={{ if .ephem }}1{{ else }}0{{ end }} \
-    https://"$PAT"@github.com/DrUbermann/dotfiles-test-v01.git
+    https://github.com/DrUbermann/dotfiles-test-v01.git
+#https://"$GITHUB_PAT"@github.com/DrUbermann/dotfiles-test-v01.git
 
 $HOME/bin/chezmoi purge --binary --force
 
