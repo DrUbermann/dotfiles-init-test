@@ -21,12 +21,13 @@ stty echo
 printf '\n' >&2
 if [ -z "$username" ] || [ -z "$password" ]; then
     . ./oneoff_bitwarden.sh
+    printf '%s\n' "Enter login details for Bitwarden:"
     username="$("$bw" get username 'dotfiles PAT')"
     password="$("$bw" get password 'dotfiles PAT')"
     echo username from oneoff_bitwarden = $username
 fi
 
-$HOME/bin/chezmoi \
+printf "$username\n$password\n" | $HOME/bin/chezmoi \
     --config={{ joinPath (dir .chezmoi.configFile) "chezmoi.toml" | quote }} \
     --source={{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }} \
     --persistent-state={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }} \
