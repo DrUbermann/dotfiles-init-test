@@ -22,4 +22,9 @@ fi
 
 BW_SESSION="$("$CMD" login --raw)"
 export BW_SESSION
-"$CMD" "$@"
+
+if [ "$#" -gt 0 ]; then
+    "$CMD" "$@"
+else
+    export bw="$CMD"
+fi

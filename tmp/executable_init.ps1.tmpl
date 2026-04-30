@@ -11,14 +11,19 @@ mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 cd "$(cd "$(dirname "$0")" && pwd)"
 pwd
 
-printf "Main dotfiles github PAT (leave blank to fall back to Bitwarden): " >&2
+printf "Main dotfiles github login email (leave blank to fall back to Bitwarden): " >&2
+read -r username
+printf "Main dotfiles github login PAT (leave blank to fall back to Bitwarden): " >&2
 stty -echo
 trap 'stty echo' EXIT INT TERM
 read -r password
 stty echo
 printf '\n' >&2
-if [ -z "$password" ]; then
-    password="$(./oneoff_bitwarden.sh get password 'dotfiles PAT')"
+if [ -z "$username" ] || [ -z "$password" ]; then
+    . ./oneoff_bitwarden.sh
+    username="$(bw get username 'dotfiles PAT')"
+    password="$(bw get password 'dotfiles PAT')"
+    echo username from oneoff_bitwarden = $username
 fi
 
 $HOME/bin/chezmoi \
@@ -30,13 +35,12 @@ $HOME/bin/chezmoi \
     --depth={{ if .ephem }}1{{ else }}0{{ end }} \
     DrUbermann/dotfiles-test
 
-$HOME/bin/chezmoi purge -P
+$HOME/bin/chezmoi purge --binary --force
 
 mkdir -p {{ dir .chezmoi.configFile | quote }}
 ln -s {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} {{ .chezmoi.configFile }}
 
-#exec rm -vi ./*
-exec rm -vi "$(cd "$(dirname "$0")" && pwd)"/*
+exec rm -vi ./*
 
 {{- else -}}
 #!/usr/bin/env pwsh
