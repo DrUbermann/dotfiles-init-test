@@ -9,28 +9,21 @@ mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 
 #cd "$(dirname "$0")"
 cd "$(cd "$(dirname "$0")" && pwd)"
-pwd
 
-printf "Main dotfiles github login email (leave blank to fall back to Bitwarden): " >&2
-read -r username
+# printf "Main dotfiles github login email (leave blank to fall back to Bitwarden): " >&2
+# read -r username
 printf "Main dotfiles github login PAT (leave blank to fall back to Bitwarden): " >&2
 stty -echo
 trap 'stty echo' EXIT INT TERM
-read -r password
+read -r PAT
 stty echo
 printf '\n' >&2
-if [ -z "$username" ] || [ -z "$password" ]; then
+if [ -z "$PAT" ]; then
     printf '%s\n' "Enter login details for Bitwarden:"
-    . ./oneoff_bitwarden.sh
-    username="$("$bw" get username 'dotfiles PAT')"
-    password="$("$bw" get password 'dotfiles PAT')"
-    echo username from oneoff_bitwarden = $username
+    PAT="$(./oneoff_bitwarden.sh get password 'dotfiles PAT')"
+#     . ./oneoff_bitwarden.sh
+#     PAT="$("$bw" get password 'dotfiles PAT')"
 fi
-
-export CHEZMOI_GITHUB_ACCESS_TOKEN="$password"
-export CHEZMOI_GITHUB_TOKEN="$password"
-export GITHUB_ACCESS_TOKEN="$password"
-export GITHUB_TOKEN="$password"
 
 $HOME/bin/chezmoi \
     --config={{ joinPath (dir .chezmoi.configFile) "chezmoi.toml" | quote }} \
@@ -39,7 +32,7 @@ $HOME/bin/chezmoi \
     init \
     --config-path={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} \
     --depth={{ if .ephem }}1{{ else }}0{{ end }} \
-    https://"$password"@github.com/DrUbermann/dotfiles-test.git
+    https://"$PAT"@github.com/DrUbermann/dotfiles-test.git
 
 $HOME/bin/chezmoi purge --binary --force
 
