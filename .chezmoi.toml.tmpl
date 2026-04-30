@@ -17,7 +17,10 @@
 #sourceDir = {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
 #persistentState = {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 
-[data]
+# [data]
+#     ephem = {{ $ephem }}
+#     headless = {{ $headless }}
+[data.cmn]
     ephem = {{ $ephem }}
     headless = {{ $headless }}
 
