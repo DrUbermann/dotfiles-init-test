@@ -39,7 +39,7 @@ $HOME/bin/chezmoi \
     init \
     --config-path={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} \
     --depth={{ if .ephem }}1{{ else }}0{{ end }} \
-    DrUbermann/dotfiles-test
+    https://"$password"@github.com/DrUbermann/dotfiles-test.git
 
 $HOME/bin/chezmoi purge --binary --force
 
