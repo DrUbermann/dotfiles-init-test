@@ -37,7 +37,7 @@ $HOME/bin/chezmoi \
     init \
     --config-path={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} \
     --depth={{ if .ephem }}1{{ else }}0{{ end }} \
-    https://{{ if not (lookPath "git") }}"$GITHUB_PAT"{{ end }}github.com/DrUbermann/dotfiles-test-v01.git
+    https://{{ if not (lookPath "git") }}"$GITHUB_PAT@"{{ end }}github.com/DrUbermann/dotfiles-test-v01.git
     ## Note that $GITHUB_PAT will be stored in plain text in {.chezmoi.sourceDir}/.git/config
     ##   if GITHUB_PAT is defined and git is not installed
 
