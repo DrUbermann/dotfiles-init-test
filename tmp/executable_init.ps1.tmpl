@@ -43,6 +43,8 @@ $HOME/bin/chezmoi \
 
 $HOME/bin/chezmoi purge --binary --force
 
+sh -c "$({{ if (lookPath "curl----") }}curl -fsLS{{ else if (lookPath "wget----") }}wget -qO-{{ else }}{{ writeToStdout "Must have curl or wget installed - aborting." "\n" }}{{ abortEmpty }}{{ end }} get.chezmoi.io)" -- -b $HOME/.local/bin
+
 mkdir -p {{ dir .chezmoi.configFile | quote }}
 ln -s {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} {{ .chezmoi.configFile }}
 
@@ -52,4 +54,6 @@ exec rm -vi ./*
 #!/usr/bin/env pwsh
 Write-Output "Running 'executable_init.ps1.tmpl' as a powershell script."
 
-{{- end }}
+{{- end -}}
+
+{{- "" }}
