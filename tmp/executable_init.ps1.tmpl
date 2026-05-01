@@ -43,7 +43,7 @@ $HOME/bin/chezmoi \
 
 $HOME/bin/chezmoi purge --binary --force
 
-sh -c "$({{ if (lookPath "curl----") }}curl -fsLS{{ else if (lookPath "wget----") }}wget -qO-{{ else }}echo 'curl and wget not available, exiting'; exit 127 )"#{{ end }} get.chezmoi.io)" -- -b $HOME/.local/bin
+sh -c "$({{ if (lookPath "curl----") }}curl -fsLS{{ else if (lookPath "wget----") }}wget -qO-{{ else }}echo 'curl and wget not available, exiting'; exit 127)" #{{ end }} get.chezmoi.io)" -- -b $HOME/.local/bin
 
 mkdir -p {{ dir .chezmoi.configFile | quote }}
 ln -s {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} {{ .chezmoi.configFile }}
