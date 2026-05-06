@@ -57,7 +57,7 @@ chmod -w {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi" | quote }}
 
 export PATH=$HOME/tmp/common:$HOME/.local/bin:$PATH
 
-chezmoi --version
+chezmoi apply
 
 exec rm -vi ./*
 
