@@ -10,7 +10,7 @@ mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 #cd "$(dirname "$0")"
 cd "$(cd "$(dirname "$0")" && pwd)"
 
-if [ -z "$GITHUB_PAT" ]; then
+if [ -z "${GITHUB_PAT:-}" ]; then
 printf '%s\n' "Enter login details for GitHub main dotfiles repo:"
 # printf "Main dotfiles GitHub login username, email, or numeric ID (leave blank to fall back to retrieval from Bitwarden): " >&2
 # read -r username
@@ -21,7 +21,7 @@ read -r GITHUB_PAT
 stty echo
 printf '\n' >&2
 fi
-if [ -z "$GITHUB_PAT" ]; then
+if [ -z "${GITHUB_PAT:-}" ]; then
     printf '%s\n' "Enter login details for Bitwarden (leave blank to fall back to pre-configured GitHub credentials manager):"
     GITHUB_PAT="$(./oneoff_bitwarden.sh get password 'dotfiles PAT')" || true
 #     . ./oneoff_bitwarden.sh
