@@ -40,7 +40,6 @@ $HOME/bin/chezmoi \
     https://{{ if not (lookPath "git") }}"$GITHUB_PAT@"{{ end }}github.com/DrUbermann/dotfiles-test-v01.git
     ## Note that $GITHUB_PAT will be stored in plain text in {.chezmoi.sourceDir}/.git/config
     ##   if GITHUB_PAT is defined and git is not installed
-    ##   but this {.chezmoi.sourceDir}/.git/config will be overwritten with the next `chezmoi init`
 
 $HOME/bin/chezmoi purge --binary --force
 
