@@ -54,7 +54,7 @@ mkdir -p {{ dir .chezmoi.configFile | quote }}
 ln -s {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} {{ .chezmoi.configFile }}
 chmod -w {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi" | quote }}
 
-export PATH=$HOME/tmp/common:$HOME/.local/bin:$PATH
+export PATH=$HOME/.local/bin:$PATH
 
 chezmoi apply
 
