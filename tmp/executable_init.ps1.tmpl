@@ -63,7 +63,7 @@ chezmoi --config={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "che
 
 #sudo apt -y install git
 
-## Set git repo to get $GITHUB_PAT from secure source
+## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
 #chezmoi git remote set-url origin https://github.com/DrUbermann/dotfiles-test-v01.git
 #chezmoi update
 
