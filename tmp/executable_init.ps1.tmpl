@@ -56,7 +56,8 @@ chmod -w {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi" | quote }}
 
 export PATH=$HOME/.local/bin:$PATH
 
-chezmoi apply --exclude scripts
+chezmoi apply --exclude scripts,encrypted
+chezmoi apply --include scripts
 
 exec rm -vi ./*
 
