@@ -61,12 +61,11 @@ chezmoi apply --include scripts
 
 chezmoi --config={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
 
-sudo apt -y install git
+#sudo apt -y install git
 
-## Set git repo to get GITHUB_PAT from secure source
-chezmoi git remote set-url origin https://github.com/DrUbermann/dotfiles-test-v01.git
-#chezmoi git branch -- --set-upstream-to=origin/master master
-chezmoi update
+## Set git repo to get $GITHUB_PAT from secure source
+#chezmoi git remote set-url origin https://github.com/DrUbermann/dotfiles-test-v01.git
+#chezmoi update
 
 exec rm -vi ./*
 
