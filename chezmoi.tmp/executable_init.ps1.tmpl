@@ -12,7 +12,7 @@ mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 #cd "$(dirname "$0")"
 cd "$(cd "$(dirname "$0")" && pwd)"
 
-#. ./.env
+. ./.env
 
 if [ -z "${GITHUB_PAT:-}" ]; then
     printf '%s\n' "Enter login details for GitHub main dotfiles repo:"
@@ -24,7 +24,7 @@ if [ -z "${GITHUB_PAT:-}" ]; then
     printf '\n' >&2
 fi
 
-export GIT_ASKPASS="$(pwd)"/git_askpass.sh
+#export GIT_ASKPASS="$(pwd)"/git_askpass.sh
 export GITHUB_PAT
 $HOME/bin/chezmoi \
     --config={{ joinPath (dir .chezmoi.configFile) "chezmoi.toml" | quote }} \
