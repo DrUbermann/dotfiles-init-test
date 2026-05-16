@@ -24,7 +24,7 @@ if [ -z "${GITHUB_PAT:-}" ]; then
     printf '\n' >&2
 fi
 
-#export GIT_ASKPASS="$(pwd)"/git_askpass.sh
+export GIT_ASKPASS="$(pwd)"/git_askpass.sh
 export GITHUB_PAT
 $HOME/bin/chezmoi \
     --config={{ joinPath (dir .chezmoi.configFile) "chezmoi.toml" | quote }} \
