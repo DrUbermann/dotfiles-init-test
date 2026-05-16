@@ -17,6 +17,11 @@
 #sourceDir = {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
 #persistentState = {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 
+encryption = "age"
+[age]
+    identity = {{ joinPath (dir .chezmoi.configFile) "key.txt" | quote }}
+    recipient = "age1u4xd4ykl9s3t3cel4rtjexj8a0aln38p0h7j3fua0r36jvt3hchsdrdw4f"
+
 [data]
     ephem = {{ $ephem }}
     headless = {{ $headless }}

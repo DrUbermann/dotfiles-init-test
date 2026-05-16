@@ -1,0 +1,17 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/bin/sh
+
+if [ ! -f "${HOME}/.config/chezmoi/key.txt" ]; then
+    mkdir -p "${HOME}/.config/chezmoi"
+    chezmoi age decrypt --output "${HOME}/.config/chezmoi/key.txt" --passphrase "{{ .chezmoi.sourceDir }}/key.txt.age"
+    chmod 600 "${HOME}/.config/chezmoi/key.txt"
+fi
+
+
+{{- else -}}
+#!/usr/bin/env pwsh
+Write-Output "Running 'run_onchange_before_decrypt-private-key.ps1.tmpl' as a powershell script."
+
+{{- end -}}
+
+{{- "" }}
