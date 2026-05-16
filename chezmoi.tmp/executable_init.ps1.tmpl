@@ -1,0 +1,73 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/bin/sh
+
+set -eu
+
+[ "$PWD" = "$HOME" ] || { printf '%s' "Must run this script in user's home directory."; exit 1; }
+
+#mv -v {{ .chezmoi.sourceDir }} {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
+mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
+#mv -v {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
+
+#cd "$(dirname "$0")"
+cd "$(cd "$(dirname "$0")" && pwd)"
+
+if [ -z "${GITHUB_PAT:-}" ]; then
+    printf '%s\n' "Enter login details for GitHub main dotfiles repo:"
+    printf "Main dotfiles GitHub login Personal Access Token (PAT) (leave blank to fall back to GitHub credentials manager): " >&2
+    stty -echo
+    trap 'stty echo' EXIT INT TERM
+    read -r GITHUB_PAT
+    stty echo
+    printf '\n' >&2
+fi
+
+export GIT_ASKPASS="$(pwd)"/git_askpass.sh
+export GITHUB_PAT
+$HOME/bin/chezmoi \
+    --config={{ joinPath (dir .chezmoi.configFile) "chezmoi.toml" | quote }} \
+    --source={{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }} \
+    --persistent-state={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }} \
+    init \
+    --config-path={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} \
+    --depth={{ if .ephem }}1{{ else }}0{{ end }} \
+    https://{{ if not (lookPath "git") }}"$GITHUB_PAT@"{{ end }}github.com/DrUbermann/dotfiles-test-v01.git
+    ## Note that $GITHUB_PAT will be stored in plain text in {.chezmoi.sourceDir}/.git/config
+    ##   if GITHUB_PAT is defined and git is not installed
+
+$HOME/bin/chezmoi purge --binary --force
+
+{{ if (lookPath "curl") }}curl -fsLS -o{{ else if (lookPath "wget") }}wget -q -O{{ else }}echo 'echo curl and wget not available, exiting; exit 127')" #{{ end }} repo.tar.gz \
+    --header "Authorization: Bearer $GITHUB_PAT" --header "Accept: application/vnd.github+json" https://api.github.com/repos/drubermann/shell-common-test/tarball/master
+tar -xzf repo.tar.gz && mv $(tar -tzf repo.tar.gz | head -1 | cut -f1 -d'/') common
+#rm repo.tar.gz
+
+sh -c "$({{ if (lookPath "curl") }}curl -fsLS{{ else if (lookPath "wget") }}wget -qO-{{ else }}echo 'echo curl and wget not available, exiting; exit 127')" #{{ end }} https://get.chezmoi.io)" -- -b $HOME/.local/bin
+
+mkdir -p {{ dir .chezmoi.configFile | quote }}
+ln -s {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} {{ .chezmoi.configFile }}
+chmod -w {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi" | quote }}
+
+export PATH=$HOME/.local/bin:$PATH
+
+chezmoi apply --exclude scripts,encrypted
+chezmoi apply --include scripts
+
+chezmoi --config={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
+
+#sudo apt -y install git
+
+## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
+#chezmoi git remote set-url origin https://github.com/DrUbermann/dotfiles-test-v01.git
+#chezmoi update
+
+#exec rm -vi ./*
+exec rm -rf ./*
+
+{{- else -}}
+#!/usr/bin/env pwsh
+Write-Output "Running 'executable_init.ps1.tmpl' as a powershell script."
+
+{{- end -}}
+
+{{- "" }}
