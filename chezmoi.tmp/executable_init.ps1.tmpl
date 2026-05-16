@@ -12,6 +12,8 @@ mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 #cd "$(dirname "$0")"
 cd "$(cd "$(dirname "$0")" && pwd)"
 
+. .env
+
 if [ -z "${GITHUB_PAT:-}" ]; then
     printf '%s\n' "Enter login details for GitHub main dotfiles repo:"
     printf "Main dotfiles GitHub login Personal Access Token (PAT) (leave blank to fall back to GitHub credentials manager): " >&2
@@ -37,10 +39,15 @@ $HOME/bin/chezmoi \
 
 $HOME/bin/chezmoi purge --binary --force
 
+{{ if lookPath "git" }}
+git clone --depth 1 https://github.com/DrUbermann/shell-common-test cmn
+rm -rf cmn/.git
+{{ else }}
 {{ if (lookPath "curl") }}curl -fsLS -o{{ else if (lookPath "wget") }}wget -q -O{{ else }}echo 'echo curl and wget not available, exiting; exit 127')" #{{ end }} repo.tar.gz \
     --header "Authorization: Bearer $GITHUB_PAT" --header "Accept: application/vnd.github+json" https://api.github.com/repos/drubermann/shell-common-test/tarball/master
-tar -xzf repo.tar.gz && mv $(tar -tzf repo.tar.gz | head -1 | cut -f1 -d'/') common
-#rm repo.tar.gz
+tar -xzf repo.tar.gz && mv $(tar -tzf repo.tar.gz | head -1 | cut -f1 -d'/') cmn
+rm repo.tar.gz
+{{ end }}
 
 sh -c "$({{ if (lookPath "curl") }}curl -fsLS{{ else if (lookPath "wget") }}wget -qO-{{ else }}echo 'echo curl and wget not available, exiting; exit 127')" #{{ end }} https://get.chezmoi.io)" -- -b $HOME/.local/bin
 
