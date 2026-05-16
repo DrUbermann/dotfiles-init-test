@@ -68,9 +68,9 @@ chezmoi --config={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "che
 #chezmoi git remote set-url origin https://github.com/DrUbermann/dotfiles-test-v01.git
 #chezmoi update
 
-#exec rm -vi ./*
+#exec rm -vi ./* ./.env
 #exec rm -rf ./* ./.env
-find . -mindepth 1 -print -delete
+#find . -mindepth 1 -print -delete
 
 {{- else -}}
 #!/usr/bin/env pwsh
