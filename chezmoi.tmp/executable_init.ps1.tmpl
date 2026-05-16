@@ -12,7 +12,7 @@ mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 #cd "$(dirname "$0")"
 cd "$(cd "$(dirname "$0")" && pwd)"
 
-. ./.env
+#. ./.env
 
 if [ -z "${GITHUB_PAT:-}" ]; then
     printf '%s\n' "Enter login details for GitHub main dotfiles repo:"
@@ -69,7 +69,8 @@ chezmoi --config={{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "che
 #chezmoi update
 
 #exec rm -vi ./*
-exec rm -rf ./*
+#exec rm -rf ./* ./.env
+find . -mindepth 1 -print -delete
 
 {{- else -}}
 #!/usr/bin/env pwsh
