@@ -3,7 +3,7 @@
 
 if [ ! -f "${HOME}/.config/chezmoi/key.txt" ]; then
     mkdir -p "${HOME}/.config/chezmoi"
-    "${HOME}/bin/chezmoi" age decrypt --output {{ joinPath (dir .chezmoi.configFile) "key.txt" | quote }} --passphrase "{{ .chezmoi.sourceDir }}/key.txt.age"
+    "${HOME}/bin/chezmoi" age decrypt --output {{ joinPath (dir .chezmoi.configFile) "key.txt" | quote }} --passphrase "{{ .chezmoi.sourceDir }}/chezmoi.tmp/key.txt.age"
     chmod 600 {{ joinPath (dir .chezmoi.configFile) "key.txt" | quote }}
 fi
 
