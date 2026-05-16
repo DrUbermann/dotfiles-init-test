@@ -3,7 +3,7 @@
 
 set -eu
 
-[ "$PWD" = "$HOME" ] || { printf '%s' "Must run this script in user's home directory."; exit 1; }
+[ "$PWD" = "$HOME" ] || { printf '%s\n' "Must run this script in user's home directory."; exit 1; }
 
 #mv -v {{ .chezmoi.sourceDir }} {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
 mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
@@ -12,7 +12,7 @@ mkdir -pv {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 #cd "$(dirname "$0")"
 cd "$(cd "$(dirname "$0")" && pwd)"
 
-. .env
+. ./.env
 
 if [ -z "${GITHUB_PAT:-}" ]; then
     printf '%s\n' "Enter login details for GitHub main dotfiles repo:"
@@ -42,6 +42,7 @@ $HOME/bin/chezmoi purge --binary --force
 {{ if lookPath "git" }}
 git clone --depth 1 https://github.com/DrUbermann/shell-common-test cmn
 rm -rf cmn/.git
+tar -czf repo.tar.gz -C repo/ .
 {{ else }}
 {{ if (lookPath "curl") }}curl -fsLS -o{{ else if (lookPath "wget") }}wget -q -O{{ else }}echo 'echo curl and wget not available, exiting; exit 127')" #{{ end }} repo.tar.gz \
     --header "Authorization: Bearer $GITHUB_PAT" --header "Accept: application/vnd.github+json" https://api.github.com/repos/drubermann/shell-common-test/tarball/master
