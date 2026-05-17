@@ -44,12 +44,12 @@ git clone --depth 1 https://github.com/DrUbermann/shell-common-test cmn
 rm -rf cmn/.git
 tar -czf repo.tar.gz -C cmn/ .
 {{ else }}
-{{ if (lookPath "curl") }}curl -fsLS -o{{ else if (lookPath "wget") }}wget -q -O{{ else if (lookPath "ftp") }}ftp -Vo{{ else }}echo 'echo curl and wget and ftp not available, exiting; exit 127')" #{{ end }} repo.tar.gz \
+{{ if (lookPath "curl") }}curl -fsLS -o{{ else if (lookPath "wget") }}wget -q -O{{ else if (and (lookPath "ftp") (exec "ftp -Vo /dev/null https://example.com 2>/dev/null")) }}ftp -Vo{{ else }}echo 'echo curl and wget and ftp not available, exiting; exit 127')" #{{ end }} repo.tar.gz \
     --header "Authorization: Bearer $GITHUB_PAT" --header "Accept: application/vnd.github+json" https://api.github.com/repos/drubermann/shell-common-test/tarball/master
 tar -xzf repo.tar.gz && mv $(tar -tzf repo.tar.gz | head -1 | cut -f1 -d'/') cmn
 {{ end }}
 
-sh -c "$({{ if (lookPath "curl") }}curl -fsLS{{ else if (lookPath "wget") }}wget -qO-{{ else if (lookPath "ftp") }}ftp -Vo -{{ else }}echo 'echo curl and wget and ftp not available, exiting; exit 127')" #{{ end }} https://get.chezmoi.io)" sh -b $HOME/.local/bin
+sh -c "$({{ if (lookPath "curl") }}curl -fsLS{{ else if (lookPath "wget") }}wget -qO-{{ else if (and (lookPath "ftp") (exec "ftp -Vo /dev/null https://example.com 2>/dev/null")) }}ftp -Vo -{{ else }}echo 'echo curl and wget and ftp not available, exiting; exit 127')" #{{ end }} https://get.chezmoi.io)" sh -b $HOME/.local/bin
 
 mkdir -p {{ dir .chezmoi.configFile | quote }}
 ln -s {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} {{ .chezmoi.configFile }}
