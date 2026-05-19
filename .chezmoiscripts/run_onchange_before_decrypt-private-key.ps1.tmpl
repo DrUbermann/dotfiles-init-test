@@ -1,16 +1,19 @@
 {{- if ne .chezmoi.os "windows" -}}
 #!/bin/sh
 
-if [ ! -f "${HOME}/.config/chezmoi/key.txt" ]; then
-    mkdir -p "${HOME}/.config/chezmoi"
-    "${HOME}/bin/chezmoi" age decrypt --output {{ joinPath (dir .chezmoi.configFile) "key.txt" | quote }} --passphrase "{{ .chezmoi.sourceDir }}/chezmoi.tmp/key.txt.age"
-    chmod 600 {{ joinPath (dir .chezmoi.configFile) "key.txt" | quote }}
+if [ ! -f {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} ]; then
+    mkdir -p "{{ osDir .chezmoi.configFile }}"
+    "${HOME}/bin/chezmoi" age decrypt --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} --passphrase {{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" | quote }}
+    chmod 600 {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }}
 fi
-
 
 {{- else -}}
 #!/usr/bin/env pwsh
-Write-Output "Running 'run_onchange_before_decrypt-private-key.ps1.tmpl' as a powershell script."
+
+if (-not (Test-Path "{{ joinPath (osDir .chezmoi.configFile) "key.txt" }}" -PathType Leaf)) {
+    New-Item -ItemType Directory -Force -Path "{{ osDir .chezmoi.configFile }}"
+    "${HOME}\bin\chezmoi.exe" age decrypt --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} --passphrase "{{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" }}"
+}
 
 {{- end -}}
 

@@ -34,7 +34,11 @@ encryption = "age"
 #     HEADLESS = {{ $headless | quote }}
 
 [hooks.apply.pre]
-	script = {{ joinPath .chezmoi.workingTree ".init_script.ps1" | quote }}
+{{ if not (eq chezmoi.os "windows" -}}
+	script = {{ joinPath .chezmoi.workingTree ".init_script.sh" | quote }}
+{{- else -}}
+    script = {{ joinPath .chezmoi.workingTree ".init_script.ps1" | quote }}
+{{- end }}
 
 # [hooks.apply.post]
 # 	script = {{ joinPath .chezmoi.workingTree ".init_script_post.ps1" | quote }}
