@@ -1,0 +1,11 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/bin/sh
+echo "Running '.init_script.ps1.tmpl' as a posix script."
+
+{{- else -}}
+#!/usr/bin/env pwsh
+Write-Output "Running '.init_script.ps1.tmpl' as a powershell script."
+
+{{- end -}}
+
+{{- "" }}
