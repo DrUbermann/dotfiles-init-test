@@ -18,7 +18,7 @@
 {{- "" }}
 #sourceDir = {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }}
 #persistentState = {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
-scriptTempDir = {{ joinPath (osDir .chezmoi.homeDir) "chezmoi.tmp" | quote }}
+scriptTempDir = {{ joinPath .chezmoi.homeDir "chezmoi.tmp" | quote }}
 
 encryption = "age"
 [age]
