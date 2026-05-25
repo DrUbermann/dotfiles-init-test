@@ -7,19 +7,22 @@
 {{/* Declare prompt variables */}}
 {{- $ephem := true -}}  {{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
 {{- $headless := true -}}  {{/* true if this machine does not have a screen and keyboard */}}
+{{- $interactive := false -}}  {{/* true if this machine should accept user input during setup */}}
 
 {{- if stdinIsATTY -}}
 {{-   $ephem = promptBoolOnce . "ephem" "ephemeral" true -}}
 {{-   $headless = promptBoolOnce . "headless" "headless" false -}}
+{{-   $interactive = promptBoolOnce . "interactive" "interactive" true -}}
 {{- end -}}
 
 {{- "" }}
-#sourceDir = {{ joinPath (dir .chezmoi.sourceDir) "chezmoi_src" | quote }}
-#persistentState = {{ joinPath (dir (dir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
+#sourceDir = {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }}
+#persistentState = {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
+scriptTempDir = {{ joinPath (osDir .chezmoi.homeDir) "chezmoi.tmp" | quote }}
 
 encryption = "age"
 [age]
-    identity = {{ joinPath (dir .chezmoi.configFile) "key.txt" | quote }}
+    identity = {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }}
     recipient = "age1u4xd4ykl9s3t3cel4rtjexj8a0aln38p0h7j3fua0r36jvt3hchsdrdw4f"
 
 [data]
