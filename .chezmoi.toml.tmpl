@@ -28,13 +28,16 @@ encryption = "age"
 [data]
     ephem = {{ $ephem }}
     headless = {{ $headless }}
+    interactive = {{ $interactive }}
 [data.cmn]
     ephem = {{ $ephem }}
     headless = {{ $headless }}
+    interactive = {{ $interactive }}
 
 # [scriptEnv]
-#     EPHEM = {{ $ephem | quote }}
-#     HEADLESS = {{ $headless | quote }}
+#     CHEZMOI_EPHEM = {{ $ephem | quote }}
+#     CHEZMOI_HEADLESS = {{ $headless | quote }}
+#     CHEZMOI_INTERACTIVE = {{ $interactive | quote }}
 
 [hooks.apply.pre]
 {{ if ne .chezmoi.os "windows" -}}
