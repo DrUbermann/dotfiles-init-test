@@ -3,15 +3,7 @@
 
 if [ ! -f {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} ]; then
     mkdir -p "{{ osDir .chezmoi.configFile }}"
-    {{- if eq .chezmoi.os "android" }}  {{/* #### NB (2026-05): Android cannot handle prompts (https://github.com/twpayne/chezmoi/discussions/5072) */}}
-    {{-     if not (env "AGE_PASSPHRASE") }}
-    printf "Passprase for age key: " >&2
-    stty -echo
-    trap 'stty echo' EXIT INT TERM
-    read -r AGE_PASSPHRASE
-    stty echo
-    printf '\n' >&2
-    {{-     end }}
+    {{- if eq .chezmoi.os "android" }}  {{/* #### NB (2026-05): Android cannot handle chezmoi prompts (https://github.com/twpayne/chezmoi/discussions/5072) */}}
     age --decrypt --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} {{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" | quote }}
     {{- else }}
     "${HOME}/bin/chezmoi" age decrypt --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} --passphrase {{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" | quote }}

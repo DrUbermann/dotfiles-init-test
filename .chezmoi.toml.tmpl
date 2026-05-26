@@ -5,14 +5,14 @@
 */ -}}
 
 {{/* Declare prompt variables */}}
+{{- $interactive := false -}}  {{/* true if this machine should accept user input during setup */}}
 {{- $ephem := true -}}  {{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
 {{- $headless := true -}}  {{/* true if this machine does not have a screen and keyboard */}}
-{{- $interactive := false -}}  {{/* true if this machine should accept user input during setup */}}
 
 {{- if stdinIsATTY -}}
+{{-   $interactive = promptBoolOnce . "interactive" "interactive" true -}}
 {{-   $ephem = promptBoolOnce . "ephem" "ephemeral" true -}}
 {{-   $headless = promptBoolOnce . "headless" "headless" false -}}
-{{-   $interactive = promptBoolOnce . "interactive" "interactive" true -}}
 {{- end -}}
 
 {{- "" }}
@@ -26,18 +26,18 @@ encryption = "age"
     recipient = "age1u4xd4ykl9s3t3cel4rtjexj8a0aln38p0h7j3fua0r36jvt3hchsdrdw4f"
 
 [data]
+    interactive = {{ $interactive }}
     ephem = {{ $ephem }}
     headless = {{ $headless }}
-    interactive = {{ $interactive }}
 [data.cmn]
+    interactive = {{ $interactive }}
     ephem = {{ $ephem }}
     headless = {{ $headless }}
-    interactive = {{ $interactive }}
 
 # [scriptEnv]
+#     CHEZMOI_INTERACTIVE = {{ $interactive | quote }}
 #     CHEZMOI_EPHEM = {{ $ephem | quote }}
 #     CHEZMOI_HEADLESS = {{ $headless | quote }}
-#     CHEZMOI_INTERACTIVE = {{ $interactive | quote }}
 
 [hooks.apply.pre]
 {{ if ne .chezmoi.os "windows" -}}
