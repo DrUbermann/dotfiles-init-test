@@ -26,7 +26,7 @@ fi
 
 export GIT_ASKPASS="$(pwd)"/git_askpass.sh
 export GITHUB_PAT
-$HOME/bin/chezmoi \
+"${CHEZMOI_EXECUTABLE}" \
     --config={{ joinPath (osDir .chezmoi.configFile) "chezmoi.toml" | quote }} \
     --source={{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }} \
     --persistent-state={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }} \
@@ -37,7 +37,7 @@ $HOME/bin/chezmoi \
     ## Note that $GITHUB_PAT will be stored in plain text in {.chezmoi.sourceDir}/.git/config
     ##   if GITHUB_PAT is defined and git is not installed
 
-$HOME/bin/chezmoi purge --binary --force
+"${CHEZMOI_EXECUTABLE}" purge --binary --force
 
 {{ if lookPath "git" }}
 git clone --depth 1 https://github.com/DrUbermann/shell-common-test cmn
