@@ -3,14 +3,16 @@
 
 set -eu
 
-[ "$PWD" = "$HOME" ] || { printf '%s\n' "Must run this script in user's home directory."; exit 1; }
+#[ "$PWD" = "$HOME" ] || { printf '%s\n' "Must run this script in user's home directory."; exit 1; }
 
 #mv -v {{ .chezmoi.sourceDir }} {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }}
 mkdir -p {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 #mv -v {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 
 #cd "$(dirname "$0")"
-cd "$(cd "$(dirname "$0")" && pwd)"
+#cd "$(cd "$(dirname "$0")" && pwd)"
+cd "$CHEZMOI_COMMAND_DIR"
+pwd
 
 . ./.env
 
