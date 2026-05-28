@@ -2,7 +2,7 @@
 #!/bin/sh
 
 set -eu
-
+pwd
 if [ ! -f {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} ]; then
     mkdir -p "{{ osDir .chezmoi.configFile }}"
     {{- if eq .chezmoi.os "android" }}  {{/* #### NB (2026-05): Android cannot handle chezmoi prompts (https://github.com/twpayne/chezmoi/discussions/5072) */}}
