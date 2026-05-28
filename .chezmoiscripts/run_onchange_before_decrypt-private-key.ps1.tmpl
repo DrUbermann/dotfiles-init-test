@@ -1,12 +1,14 @@
 {{- if ne .chezmoi.os "windows" -}}
 #!/bin/sh
 
+set -eu
+
 if [ ! -f {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} ]; then
     mkdir -p "{{ osDir .chezmoi.configFile }}"
     {{- if eq .chezmoi.os "android" }}  {{/* #### NB (2026-05): Android cannot handle chezmoi prompts (https://github.com/twpayne/chezmoi/discussions/5072) */}}
     age --decrypt --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} {{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" | quote }}
     {{- else }}
-    "${HOME}/bin/chezmoi" age decrypt --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} --passphrase {{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" | quote }}
+    "bin/chezmoi" age decrypt --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} --passphrase {{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" | quote }}
     {{- end }}
     chmod 600 {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }}
 fi
