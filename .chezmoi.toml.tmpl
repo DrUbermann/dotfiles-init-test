@@ -35,9 +35,9 @@ encryption = "age"
     headless = {{ $headless }}
 
 # [scriptEnv]
-#     CHEZMOI_INTERACTIVE = {{ $interactive | quote }}
-#     CHEZMOI_EPHEM = {{ $ephem | quote }}
-#     CHEZMOI_HEADLESS = {{ $headless | quote }}
+#     CZ_INTERACTIVE = {{ $interactive | quote }}
+#     CZ_EPHEM = {{ $ephem | quote }}
+#     CZ_HEADLESS = {{ $headless | quote }}
 
 [hooks.apply.pre]
 {{ if ne .chezmoi.os "windows" -}}
