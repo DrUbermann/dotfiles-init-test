@@ -8,7 +8,7 @@ if [ ! -f {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} ]; then
     {{- if eq .chezmoi.os "android" }}  {{/* #### NB (2026-05): Android cannot handle chezmoi prompts (https://github.com/twpayne/chezmoi/discussions/5072) */}}
     age --decrypt --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} {{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" | quote }}
     {{- else }}
-    "${CHEZMOI_SOURCE_DIR}"/bin/chezmoi age decrypt --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} --passphrase {{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" | quote }}
+    "${CHEZMOI_EXECUTABLE}" age decrypt --passphrase --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} {{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" | quote }}
     {{- end }}
     chmod 600 {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }}
 fi
@@ -18,7 +18,7 @@ fi
 
 if (-not (Test-Path "{{ joinPath (osDir .chezmoi.configFile) "key.txt" }}" -PathType Leaf)) {
     New-Item -ItemType Directory -Force -Path "{{ osDir .chezmoi.configFile }}" | Out-Null
-    & "$HOME\bin\chezmoi.exe" age decrypt --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} --passphrase "{{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" }}"
+    & "${CHEZMOI_EXECUTABLE}" age decrypt --passphrase --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} {{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" | quote }}
 }
 
 {{- end -}}
