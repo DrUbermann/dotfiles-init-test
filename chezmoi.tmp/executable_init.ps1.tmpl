@@ -79,7 +79,8 @@ export PATH=$HOME/.local/bin:$PATH
 
 chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 
-sed 's|^\(\s*url\s*=\s*https://\)[A-Za-z0-9_-]*@|\1|' "~/.local/share/chezmoi_src/.git/config" > "~/.local/share/chezmoi_src/.git/config"
+mv {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".git" "config" | quote }} ./gitconfig
+sed 's|^\(\s*url\s*=\s*https://\)[A-Za-z0-9_-]*@|\1|' "./gitconfig" > {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".git" "config" | quote }}
 
 ## Run add to sudoers script here
 
@@ -104,7 +105,11 @@ chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)
 #!/usr/bin/env pwsh
 
 
-
+#GITCONFIG=".git/config"
+#TMP=$(mktemp)
+#sed 's|^\(\s*url\s*=\s*https://\)[A-Za-z0-9_-]*@|\1|' "$GITCONFIG" > "$TMP" \
+#    && mv "$TMP" "$GITCONFIG" \
+#    || { rm -f "$TMP"; exit 1; }
 
 
 
