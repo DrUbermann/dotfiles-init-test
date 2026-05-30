@@ -78,7 +78,11 @@ chmod -w {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi" | quote }}
 export PATH=$HOME/.local/bin:$PATH
 
 chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
-chezmoi $LGR_LVL_CHEZMOI apply --include scripts
+
+## Run add to sudoers script here
+
+## Start a new login shell so user will have new elevated privileges reflected for sudo/doas in chezmoi scripts
+su - $(id -un) -c "PATH='$PATH' chezmoi $LGR_LVL_CHEZMOI apply --include scripts"
 
 chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
 
