@@ -82,7 +82,7 @@ export PATH=$HOME/.local/bin:$PATH
 
 chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 
-{{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".excu" | quote }}/grant_privileged_access.sh || x=$?
+x=1 && {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".excu" | quote }}/grant_privileged_access.sh || x=$?
 
 ## Variables used in next part of script
 printf '%s="%s"\n' "export PATH" "$PATH" >> ./.env
