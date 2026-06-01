@@ -84,12 +84,12 @@ chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 
 {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".excu" | quote }}/grant_privileged_access.sh || x=$?
 if [ "$x" -eq 3 ]; then
-    printf '%s\n%s\n' "User added to sudo/doas group; must create new shell to continue: 'su - $(id -un)'" "./$(basename "$0")-1.sh"
+    printf '%s\n%s\n%s\n' "User added to sudo/doas group; must create new shell to continue:" "su - $(id -un)" "sh ${0%.*}-1.${0##*.}"
     exit 0
 elif [ "$x" -ne 0 ]; then
     exit $x
 fi
-
+new="${$(basename "$0")%.*}-1.${$(basename "$0")##*.}"
 ## Run second part of init script
 printf '%s="%s"\n' "export PATH" "$PATH" >> ./.env
 printf '%s="%s"\n' "LGR_LVL_CNSL" "$LGR_LVL_CNSL" >> ./.env
@@ -97,7 +97,7 @@ printf '%s="%s"\n' "LGR_LVL_CHEZMOI" "$LGR_LVL_CHEZMOI" >> ./.env
 printf '%s="%s"\n' "export GIT_ASKPASS" "$GIT_ASKPASS" >> ./.env
 printf '%s="%s"\n' "export GITHUB_PAT" "$GITHUB_PAT" >> ./.env
 
-./$(basename "$0")-1.sh
+sh "${0%.*}-1.${0##*.}"
 
 exit 0
 
