@@ -94,6 +94,9 @@ fi
 printf '%s="%s"\n' "export PATH" "$PATH" >> ./.env
 printf '%s="%s"\n' "LGR_LVL_CNSL" "$LGR_LVL_CNSL" >> ./.env
 printf '%s="%s"\n' "LGR_LVL_CHEZMOI" "$LGR_LVL_CHEZMOI" >> ./.env
+printf '%s="%s"\n' "export GIT_ASKPASS" "$GIT_ASKPASS" >> ./.env
+printf '%s="%s"\n' "export GITHUB_PAT" "$GITHUB_PAT" >> ./.env
+
 ./$(basename "$0")-1.sh
 
 exit 0
