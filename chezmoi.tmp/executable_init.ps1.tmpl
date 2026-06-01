@@ -22,16 +22,14 @@ while [ "$#" -gt 0 ]; do
 done
 [ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
 
-#[ "$PWD" = "$HOME" ] || { printf '%s\n' "Must run this script in user's home directory."; exit 1; }
-
-#mv -v {{ .chezmoi.sourceDir }} {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }}
-mkdir -p {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
-#mv -v {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
-
 #cd "$(dirname "$0")"
 cd "$(cd "$(dirname "$0")" && pwd)"
 
 . ./.env
+
+#mv -v {{ .chezmoi.sourceDir }} {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }}
+mkdir -p {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
+#mv -v {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 
 if [ -z "${GITHUB_PAT:-}" ]; then
     printf '%s\n' "Enter login details for GitHub main dotfiles repo:"
@@ -59,6 +57,11 @@ export GITHUB_PAT
 
 {{ .chezmoi.executable | quote }} $LGR_LVL_CHEZMOI purge --binary --force
 
+## Remove token from url in config file
+## This will require repo to get $GITHUB_PAT from secure source rather than plain text in the url
+mv {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".git" "config" | quote }} ./gitconfig
+sed 's|^\(\s*url\s*=\s*https://\)[A-Za-z0-9_-]*@|\1|' "./gitconfig" > {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".git" "config" | quote }}
+
 {{ if lookPath "git" }}
 git clone --depth 1 https://github.com/DrUbermann/shell-common-test cmn
 rm -rf cmn/.git
@@ -79,8 +82,22 @@ export PATH=$HOME/.local/bin:$PATH
 
 chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 
-mv {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".git" "config" | quote }} ./gitconfig
-sed 's|^\(\s*url\s*=\s*https://\)[A-Za-z0-9_-]*@|\1|' "./gitconfig" > {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".git" "config" | quote }}
+{{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".excu" | quote }}/grant_privileged_access.sh || x=$?
+if [ "$x" -eq 3 ]; then
+    printf '%s\n%s\n' "User added to sudo/doas group; must create new shell to continue: 'su - $(id -un)'" "./$(basename "$0")-1.sh"
+    exit 0
+elif [ "$x" -ne 0 ]; then
+    exit $x
+fi
+
+## Run second part of init script
+printf '%s="%s"\n' "export PATH" "$PATH" >> ./.env
+printf '%s="%s"\n' "LGR_LVL_CNSL" "$LGR_LVL_CNSL" >> ./.env
+printf '%s="%s"\n' "LGR_LVL_CHEZMOI" "$LGR_LVL_CHEZMOI" >> ./.env
+./$(basename "$0")-1.sh
+
+exit 0
+
 
 ## Run add to sudoers script here
 
@@ -93,8 +110,7 @@ chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)
 
 ## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
 #chezmoi $LGR_LVL_CHEZMOI git remote set-url origin https://github.com/DrUbermann/dotfiles-test-v01.git
-# if git not available
-#sed 's|^\(\s*url\s*=\s*https://\)[A-Za-z0-9_-]*@|\1|' ".local/share/chezmoi_src/.git/config"
+
 #chezmoi $LGR_LVL_CHEZMOI update
 
 #exec rm -vi ./* ./.env
@@ -103,14 +119,6 @@ chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)
 
 {{- else -}}
 #!/usr/bin/env pwsh
-
-
-#GITCONFIG=".git/config"
-#TMP=$(mktemp)
-#sed 's|^\(\s*url\s*=\s*https://\)[A-Za-z0-9_-]*@|\1|' "$GITCONFIG" > "$TMP" \
-#    && mv "$TMP" "$GITCONFIG" \
-#    || { rm -f "$TMP"; exit 1; }
-
 
 
 
