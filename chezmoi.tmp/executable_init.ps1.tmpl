@@ -3,6 +3,11 @@
 
 set -eu
 
+#cd "$(dirname "$0")"
+cd "$(cd "$(dirname "$0")" && pwd)"
+
+. ./.env
+
 LGR_LVL_CNSL=${LGR_LVL_CNSL:-}
 LGR_LVL_CHEZMOI=''
 while [ "$#" -gt 0 ]; do
@@ -21,11 +26,6 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 [ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
-
-#cd "$(dirname "$0")"
-cd "$(cd "$(dirname "$0")" && pwd)"
-
-. ./.env
 
 #mv -v {{ .chezmoi.sourceDir }} {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }}
 mkdir -p {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}

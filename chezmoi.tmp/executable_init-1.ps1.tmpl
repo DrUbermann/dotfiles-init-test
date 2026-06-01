@@ -3,12 +3,11 @@
 
 set -eu
 
-[ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
-
 cd "$(cd "$(dirname "$0")" && pwd)"
 
 . ./.env
 
+[ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
 
 chezmoi $LGR_LVL_CHEZMOI apply --include scripts"
 
