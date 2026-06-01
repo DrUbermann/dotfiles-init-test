@@ -9,7 +9,7 @@ cd "$(cd "$(dirname "$0")" && pwd)"
 
 [ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
 
-chezmoi $LGR_LVL_CHEZMOI apply --include scripts"
+chezmoi $LGR_LVL_CHEZMOI apply --include scripts
 
 chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
 
