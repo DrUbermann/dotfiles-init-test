@@ -8,24 +8,30 @@ cd "$(cd "$(dirname "$0")" && pwd)"
 
 . ./.env
 
+LGR_FDIR_FILE="$(pwd)"
 LGR_LVL_CNSL=${LGR_LVL_CNSL:-}
+LGR_LVL_FILE=${LGR_LVL_FILE:-}
 LGR_LVL_CHEZMOI=''
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --verbose)
             LGR_LVL_CHEZMOI=$1
             LGR_LVL_CNSL=INFO
+            LGR_LVL_FILE=INFO
             shift ;;
         --debug)
             LGR_LVL_CHEZMOI=$1
             LGR_LVL_CNSL=DEBUG
+            LGR_LVL_FILE=DEBUG
             shift ;;
         *)
             printf '%s\n' "Unknown parameter: $1" >&2
             exit 1 ;;
     esac
 done
+export LGR_FDIR_FILE
 [ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
+[ -n $LGR_LVL_FILE ] && export LGR_LVL_FILE
 
 #mv -v {{ .chezmoi.sourceDir }} {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }}
 mkdir -p {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
@@ -86,10 +92,9 @@ x=0 && {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".excu" | quote }}/g
 
 ## Variables used in next part of script
 printf '%s="%s"\n' "export PATH" "$PATH" >> ./.env
-printf '%s="%s"\n' "LGR_LVL_CNSL" "$LGR_LVL_CNSL" >> ./.env
-printf '%s="%s"\n' "LGR_LVL_CHEZMOI" "$LGR_LVL_CHEZMOI" >> ./.env
 printf '%s="%s"\n' "export GIT_ASKPASS" "$GIT_ASKPASS" >> ./.env
 printf '%s="%s"\n' "export GITHUB_PAT" "$GITHUB_PAT" >> ./.env
+env | grep '^LGR_' | sed "s/'\''/'\\\\'\\''/g; s/^\([^=]*\)=\(.*\)$/\1='\2'/" >> ./.env
 
 if [ "$x" -eq 3 ]; then
     printf '%s\n%s\n%s\n' "User added to sudo/doas group; must create new shell to continue:" "su - $(id -un)" "sh ${0%.*}-1.${0##*.}"
