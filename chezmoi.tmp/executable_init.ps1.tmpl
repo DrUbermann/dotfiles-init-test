@@ -88,6 +88,15 @@ export PATH=$HOME/.local/bin:$PATH
 
 chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 
+## Install sudo or doas if not running as root
+if [ "$(id -u)" -ne 0 ] && ! command -v sudo >/dev/null 2>&1 && ! command -v doas >/dev/null 2>&1; then
+    if [ $(uname -s) = OpenBSD ] || [ -f /etc/alpine-release ]; then
+        {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".excu" | quote }}/install_packages.sh doas
+    else
+        {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".excu" | quote }}/install_packages.sh sudo       
+    fi
+fi
+
 x=0 && {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".excu" | quote }}/grant_privileged_access.sh || x=$?
 
 ## Variables used in next part of script
