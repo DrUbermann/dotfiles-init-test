@@ -106,17 +106,16 @@ printf '%s="%s"\n' "export GITHUB_PAT" "$GITHUB_PAT" >> ./.env
 #printf '%s="%s"\n' "LGR_LVL_CHEZMOI" "$LGR_LVL_CHEZMOI" >> ./.env
 env | grep '^LGR_' | sed "s/'\''/'\\\\'\\''/g; s/^\([^=]*\)=\(.*\)$/\1='\2'/" >> ./.env
 
+_script_1="$(cd "$(dirname "$0")" && pwd -P)/$(basename "${0%.*}-1.${0##*.}")"
 if [ "$x" -eq 3 ]; then
-    printf '%s\n%s\n%s\n' "User added to sudo/doas group; must create new shell to continue:" "su - $(id -un)" "sh ${0%.*}-1.${0##*.}"
+    printf '%s\n%s\n%s\n' "User added to sudo/doas group; must create new shell to continue:" "su - $(id -un)" "sh $_script_1"
     exit 0
 elif [ "$x" -ne 0 ]; then
     exit $x
 fi
 
-## Run second part of init script
-
-
-sh "${0%.*}-1.${0##*.}"
+## Run next part of init script
+sh "_script_1"
 
 exit 0
 
