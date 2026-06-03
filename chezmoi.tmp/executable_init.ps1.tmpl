@@ -104,6 +104,7 @@ printf '%s="%s"\n' "export PATH" "$PATH" >> ./.env
 printf '%s="%s"\n' "export GIT_ASKPASS" "$GIT_ASKPASS" >> ./.env
 printf '%s="%s"\n' "export GITHUB_PAT" "$GITHUB_PAT" >> ./.env
 env | grep '^LGR_' | sed "s/'\''/'\\\\'\\''/g; s/^\([^=]*\)=\(.*\)$/\1='\2'/" >> ./.env
+env | grep '^LGR_'
 
 if [ "$x" -eq 3 ]; then
     printf '%s\n%s\n%s\n' "User added to sudo/doas group; must create new shell to continue:" "su - $(id -un)" "sh ${0%.*}-1.${0##*.}"
