@@ -32,6 +32,7 @@ done
 export LGR_FDIR_FILE
 [ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
 [ -n $LGR_LVL_FILE ] && export LGR_LVL_FILE
+LGR_LVL_CHEZMOI='a'
 env | grep '^LGR_'
 #mv -v {{ .chezmoi.sourceDir }} {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }}
 mkdir -p {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
