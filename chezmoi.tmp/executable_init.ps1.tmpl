@@ -107,6 +107,7 @@ printf '%s="%s"\n' "export GITHUB_PAT" "$GITHUB_PAT" >> ./.env
 env | grep '^LGR_' | sed "s/'\''/'\\\\'\\''/g; s/^\([^=]*\)=\(.*\)$/\1='\2'/" >> ./.env
 
 _script_1="$(cd "$(dirname "$0")" && pwd -P)/$(basename "${0%.*}-1.${0##*.}")"
+echo _script_1 = $_script_1
 if [ "$x" -eq 3 ]; then
     printf '%s\n%s\n%s\n' "User added to sudo/doas group; must create new shell to continue:" "su - $(id -un)" "sh $_script_1"
     exit 0
