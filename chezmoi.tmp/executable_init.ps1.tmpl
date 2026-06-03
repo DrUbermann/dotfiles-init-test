@@ -32,7 +32,7 @@ done
 export LGR_FDIR_FILE
 [ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
 [ -n $LGR_LVL_FILE ] && export LGR_LVL_FILE
-
+env | grep '^LGR_'
 #mv -v {{ .chezmoi.sourceDir }} {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }}
 mkdir -p {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 #mv -v {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
@@ -105,7 +105,7 @@ printf '%s="%s"\n' "export GIT_ASKPASS" "$GIT_ASKPASS" >> ./.env
 printf '%s="%s"\n' "export GITHUB_PAT" "$GITHUB_PAT" >> ./.env
 env | grep '^LGR_' | sed "s/'\''/'\\\\'\\''/g; s/^\([^=]*\)=\(.*\)$/\1='\2'/" >> ./.env
 env | grep '^LGR_'
-
+env
 if [ "$x" -eq 3 ]; then
     printf '%s\n%s\n%s\n' "User added to sudo/doas group; must create new shell to continue:" "su - $(id -un)" "sh ${0%.*}-1.${0##*.}"
     exit 0
