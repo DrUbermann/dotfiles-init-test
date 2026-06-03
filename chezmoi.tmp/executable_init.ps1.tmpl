@@ -8,9 +8,10 @@ cd "$(cd "$(dirname "$0")" && pwd)"
 
 . ./.env
 
-LGR_FDIR_FILE="$(pwd)"
 LGR_LVL_CNSL=${LGR_LVL_CNSL:-}
 LGR_LVL_FILE=${LGR_LVL_FILE:-}
+#export LGR_FDIR_FILE="$(pwd)"
+export LGR_FPATH_FILE="$(pwd)/chezmoi_main.log"
 export LGR_LVL_CHEZMOI=''
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -29,7 +30,6 @@ while [ "$#" -gt 0 ]; do
             exit 1 ;;
     esac
 done
-export LGR_FDIR_FILE
 [ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
 [ -n $LGR_LVL_FILE ] && export LGR_LVL_FILE
 
