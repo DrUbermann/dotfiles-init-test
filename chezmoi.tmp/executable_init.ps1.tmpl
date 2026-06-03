@@ -108,7 +108,6 @@ printf '%s="%s"\n' "export GITHUB_PAT" "$GITHUB_PAT" >> ./.env
 env | grep '^LGR_' | sed "s/'\''/'\\\\'\\''/g; s/^\([^=]*\)=\(.*\)$/\1='\2'/" >> ./.env
 
 _fpath_script_1="$(cd "$(dirname "$FPATH_SCRIPT")" && pwd -P)/$(basename "${FPATH_SCRIPT%.*}-1.${FPATH_SCRIPT##*.}")"
-echo _fpath_script_1 = $_fpath_script_1
 if [ "$x" -eq 3 ]; then
     printf '%s\n%s\n%s\n' "User added to sudo/doas group; must create new shell to continue:" "su - $(id -un)" "sh $_fpath_script_1"
     exit 0
@@ -117,7 +116,7 @@ elif [ "$x" -ne 0 ]; then
 fi
 
 ## Run next part of init script
-sh "_fpath_script_1"
+sh "$_fpath_script_1"
 
 exit 0
 
