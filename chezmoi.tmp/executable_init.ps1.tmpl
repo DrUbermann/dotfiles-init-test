@@ -67,7 +67,7 @@ export GITHUB_PAT
 ## Remove token from url in config file
 ## This will require repo to get $GITHUB_PAT from secure source rather than plain text in the url
 mv {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".git" "config" | quote }} ./gitconfig
-sed 's|^\(\s*url\s*=\s*https://\)[A-Za-z0-9_-]*@|\1|' "./gitconfig" > {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".git" "config" | quote }}
+sed 's|^\([[:space:]]*url[[:space:]]*=[[:space:]]*https://\)[A-Za-z0-9_-]*@|\1|' "./gitconfig" > {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" ".git" "config" | quote }}
 
 {{ if lookPath "git" }}
 git clone --depth 1 https://github.com/DrUbermann/shell-common-test cmn
