@@ -3,8 +3,6 @@
 
 set -eu
 
-echo "Running 'run_init.ps1.tmpl' as a posix shell script."
-
 if [ ! -f {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} ]; then
     mkdir -p "{{ osDir .chezmoi.configFile }}"
     {{- if eq .chezmoi.os "android" }}  {{/* #### NB (2026-05): Android cannot handle chezmoi prompts (https://github.com/twpayne/chezmoi/discussions/5072) */}}
@@ -17,8 +15,6 @@ fi
 
 {{- else -}}
 #!/usr/bin/env pwsh
-
-Write-Output "Running 'run_onchange_before_decrypt-private-key.ps1.tmpl' as a powershell script."
 
 if (-not (Test-Path "{{ joinPath (osDir .chezmoi.configFile) "key.txt" }}" -PathType Leaf)) {
     New-Item -ItemType Directory -Force -Path "{{ osDir .chezmoi.configFile }}" | Out-Null
