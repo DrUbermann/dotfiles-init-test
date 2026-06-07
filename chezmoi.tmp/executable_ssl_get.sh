@@ -41,7 +41,7 @@ ssl_get() {
         _sg_path="${_sg_path:-/}"
 
         {
-            printf 'GET %s HTTP/1.1\r\n' "$_sg_path"
+            printf 'GET %s HTTP/1.0\r\n' "$_sg_path"
             printf 'Host: %s\r\n'        "$_sg_host"
             if [ "$_sg_first" -eq 1 ]; then
                 _sg_i=1
