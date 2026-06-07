@@ -74,8 +74,8 @@ git clone --depth 1 https://github.com/DrUbermann/shell-common-test cmn
 rm -rf cmn/.git
 tar -czf repo.tar.gz -C cmn/ .
 {{ else }}
-{{ if not (or (lookPath "cur") (lookPath "wgt")) }}. ./ssl_get.sh{{ end }}
-{{ if (lookPath "cur") }}curl -fsLS -o{{ else if (lookPath "wge") }}wget -q -O{{ else if (and (lookPath "openssl") (exec "openssl" "s_client" "-connect" "example.com:443" "-servername" "example.com")) }}ssl_get -o{{ else }}echo curl and wget and ssl not available, exiting; exit 127 #{{ end }} repo.tar.gz \
+{{ if not (or (lookPath "curl") (lookPath "wget")) }}. ./ssl_get.sh{{ end }}
+{{ if (lookPath "curl") }}curl -fsLS -o{{ else if (lookPath "wget") }}wget -q -O{{ else if (and (lookPath "openssl") (exec "openssl" "s_client" "-connect" "example.com:443" "-servername" "example.com")) }}ssl_get -o{{ else }}echo curl and wget and ssl not available, exiting; exit 127 #{{ end }} repo.tar.gz \
     --header "Authorization: Bearer $GITHUB_PAT" --header "Accept: application/vnd.github+json" https://api.github.com/repos/drubermann/shell-common-test/tarball/master
 tar -xzf repo.tar.gz && mv $(tar -tzf repo.tar.gz | head -1 | cut -f1 -d'/') cmn
 {{ end }}
