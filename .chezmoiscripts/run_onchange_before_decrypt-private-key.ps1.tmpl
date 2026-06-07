@@ -22,7 +22,7 @@ Write-Output "Running 'run_onchange_before_decrypt-private-key.ps1.tmpl' as a po
 
 if (-not (Test-Path "{{ joinPath (osDir .chezmoi.configFile) "key.txt" }}" -PathType Leaf)) {
     New-Item -ItemType Directory -Force -Path "{{ osDir .chezmoi.configFile }}" | Out-Null
-    & "$Env:CHEZMOI_EXECUTABLE" age decrypt --passphrase --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} {{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" | quote }}
+    & "${Env:CHEZMOI_EXECUTABLE}" age decrypt --passphrase --output {{ joinPath (osDir .chezmoi.configFile) "key.txt" | quote }} {{ joinPath .chezmoi.sourceDir "chezmoi.tmp" "key.txt.age" | quote }}
 }
 
 {{- end -}}
