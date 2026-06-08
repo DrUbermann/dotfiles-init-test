@@ -7,8 +7,7 @@ read -r _password < /dev/tty
 stty echo < /dev/tty
 printf '\n' > /dev/tty
 
-_creds=$(printf ':%s' "$_password" | base64)
-#_header="--header Authorization: Basic $_creds"
+_creds=$(printf ':%s' "$_password" | openssl enc -base64 | tr -d '\n')
 _url="https://dotfiles-init-test.drubermann.workers.dev/.init_script.sh"
 
 if command -v curl >/dev/null 2>&1; then
@@ -18,5 +17,5 @@ elif command -v wget >/dev/null 2>&1; then
 else
     printf 'curl or wget not found.\n'
 fi
-#echo $_cmd --header "Authorization: Basic $_creds" "$_url"
+
 $_cmd --header "Authorization: Basic $_creds" "$_url" | sh
