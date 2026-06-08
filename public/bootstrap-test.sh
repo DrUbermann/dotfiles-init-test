@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ## prompt for password without echoing it
-printf 'Password: ' > /dev/tty
+printf '\nPassword: ' > /dev/tty
 stty -echo < /dev/tty
 read -r _password < /dev/tty
 stty echo < /dev/tty
