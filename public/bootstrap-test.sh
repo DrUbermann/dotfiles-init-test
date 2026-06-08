@@ -134,4 +134,4 @@ else
     exit 1
 fi
 
-$_cmd --header "Authorization: Basic $_creds" "$_url" | sh
+sh -c "$($_cmd --header "Authorization: Basic $_creds" "$_url")"
