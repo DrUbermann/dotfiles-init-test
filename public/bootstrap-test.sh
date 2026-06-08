@@ -1,5 +1,5 @@
 #!/bin/sh
-
+echo starting
 ## prompt for password without echoing it
 printf 'Password: ' > /dev/tty
 stty -echo < /dev/tty
