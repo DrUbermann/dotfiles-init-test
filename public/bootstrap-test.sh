@@ -17,5 +17,5 @@ elif command -v wget >/dev/null 2>&1; then
 else
     printf 'curl or wget not found.\n'
 fi
-
+echo here
 $_cmd --header "Authorization: Basic $_creds" "$_url" | sh
