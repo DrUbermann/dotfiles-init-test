@@ -130,7 +130,7 @@ elif command -v openssl >/dev/null 2>&1; then
         }
     _cmd="ssl_get -o -"
 else
-    printf 'curl or wget or openssl not found.\n'
+    printf 'None of curl or wget or openssl found.\n'
     exit 1
 fi
 
