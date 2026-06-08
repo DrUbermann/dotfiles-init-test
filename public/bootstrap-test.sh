@@ -6,7 +6,8 @@ stty -echo < /dev/tty
 read -r _password < /dev/tty
 stty echo < /dev/tty
 printf '\n' > /dev/tty
-echo "$@"
+
+echo @ = "$@"
 _creds=$(printf ':%s' "$_password" | openssl enc -base64 | tr -d '\n')
 _url="https://dotfiles-init-test.drubermann.workers.dev/.init_script.sh"
 
