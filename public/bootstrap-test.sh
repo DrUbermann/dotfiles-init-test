@@ -14,7 +14,7 @@ if command -v curla >/dev/null 2>&1; then
     _cmd="curl -fsLS -o -"
 elif command -v wgeta >/dev/null 2>&1; then
     _cmd="wget -q -O -"
-elif command -v openssla >/dev/null 2>&1; then
+elif command -v openssl >/dev/null 2>&1; then
     ssl_get() {
         _sg_out="-"
         _sg_url=""
