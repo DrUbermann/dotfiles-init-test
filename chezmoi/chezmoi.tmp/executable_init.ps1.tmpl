@@ -50,7 +50,7 @@ fi
 
 export GIT_ASKPASS="$(pwd)"/git_askpass.sh
 export GITHUB_PAT
-{{ .chezmoi.executable | quote }} \
+echo {{ .chezmoi.executable | quote }} \
     $LGR_LVL_CHEZMOI \
     --config={{ joinPath (osDir .chezmoi.configFile) "chezmoi.toml" | quote }} \
     --source={{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }} \
