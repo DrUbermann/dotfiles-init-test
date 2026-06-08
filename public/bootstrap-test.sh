@@ -8,11 +8,11 @@ stty echo < /dev/tty
 printf '\n' > /dev/tty
 
 _creds=$(printf ':%s' "$_password" | openssl enc -base64 | tr -d '\n')
-_url="https://dotfiles-init-test.drubermann.workers.dev/.init_script.sh"
+_url="https://dotfiles-init-test.drubermann.workers.dev/init-test.sh"
 
-if command -v curla >/dev/null 2>&1; then
+if command -v curl_aaaaa >/dev/null 2>&1; then
     _cmd="curl -fsLS -o -"
-elif command -v wgeta >/dev/null 2>&1; then
+elif command -v wget_aaaaa >/dev/null 2>&1; then
     _cmd="wget -q -O -"
 elif command -v openssl >/dev/null 2>&1; then
     ssl_get() {

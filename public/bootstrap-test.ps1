@@ -12,7 +12,7 @@ $creds = [Convert]::ToBase64String(
     [Text.Encoding]::UTF8.GetBytes(":$password")
 )
 
-$url = 'https://dotfiles-init-test.drubermann.workers.dev/.init_script.ps1'
+$url = 'https://dotfiles-init-test.drubermann.workers.dev/init-test.ps1'
 
 $webClient = New-Object System.Net.WebClient
 $webClient.Headers.Add('Authorization', "Basic $creds")
