@@ -1,11 +1,11 @@
 #!/bin/sh
 
 ## prompt for password without echoing it
-printf 'Password: '
-stty -echo
-read -r _password
-stty echo
-printf '\n'
+printf 'Password: ' > /dev/tty
+stty -echo < /dev/tty
+read -r _password < /dev/tty
+stty echo < /dev/tty
+printf '\n' > /dev/tty
 
 _creds=$(printf ':%s' "$_password" | base64)
 #_header="--header Authorization: Basic $_creds"
