@@ -9,8 +9,8 @@ printf '\n' > /dev/tty
 
 _creds=$(printf ':%s' "$_password" | base64)
 #_header="--header Authorization: Basic $_creds"
-_url="https://dotfiles-init-test.drubermann.workers.dev/.ainit_script.sh"
-
+_url="https://dotfiles-init-test.drubermann.workers.dev/.init_script.sh"
+echo ok
 if command -v curl >/dev/null 2>&1; then
     _cmd="curl -fsLS"
 elif command -v wget >/dev/null 2>&1; then
