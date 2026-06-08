@@ -14,9 +14,9 @@ echo ok
 if command -v curl >/dev/null 2>&1; then
     _cmd="curl -fsLS"
 elif command -v wget >/dev/null 2>&1; then
-  _cmd="wget -q"
+  _cmd="wget -q -O -"
 else
     printf 'curl or wget not found.\n'
 fi
 echo $_cmd --header "Authorization: Basic $_creds" "$_url"
-wget -q --header "Authorization: Basic $_creds" "$_url"
+wget -O - --header "Authorization: Basic $_creds" "$_url"
