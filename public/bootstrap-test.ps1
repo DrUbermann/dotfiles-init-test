@@ -1,12 +1,14 @@
 #!/usr/bin/env pwsh
 
+Set-ExecutionPolicy -Scope CurrentUser Bypass
+
+# Use integer value for TLS 1.2 to support .NET 4.0
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]3072
+
 $securePassword = Read-Host -Prompt 'Password' -AsSecureString
 $password = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
     [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
 )
-
-# Use integer value for TLS 1.2 to support .NET 4.0
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]3072
 
 $creds = [Convert]::ToBase64String(
     [Text.Encoding]::UTF8.GetBytes(":$password")
