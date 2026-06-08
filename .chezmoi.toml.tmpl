@@ -9,11 +9,11 @@
 {{- $ephem := true -}}  {{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
 {{- $headless := true -}}  {{/* true if this machine does not have a screen and keyboard */}}
 
-{{- if stdinIsATTY -}}
+#{- if stdinIsATTY -}}
 {{-   $interactive = promptBoolOnce . "interactive" "interactive" true -}}
 {{-   $ephem = promptBoolOnce . "ephem" "ephemeral" true -}}
 {{-   $headless = promptBoolOnce . "headless" "headless" false -}}
-{{- end -}}
+#{- end -}}
 
 {{- "" }}
 #sourceDir = {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }}
