@@ -12,11 +12,11 @@ _creds=$(printf ':%s' "$_password" | base64)
 _url="https://dotfiles-init-test.drubermann.workers.dev/.init_script.sh"
 echo ok
 if command -v curl >/dev/null 2>&1; then
-    _cmd="curl -fsLS"
+    _cmd="curl -fsLS -o -"
 elif command -v wget >/dev/null 2>&1; then
   _cmd="wget -q -O -"
 else
     printf 'curl or wget not found.\n'
 fi
 echo $_cmd --header "Authorization: Basic $_creds" "$_url"
-wget -O - --header "Authorization: Basic $_creds" "$_url"
+wget -O - --header "Authorization: Basic $_creds" "$_url" | sh
