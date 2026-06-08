@@ -19,4 +19,4 @@ else
     printf 'curl or wget not found.\n'
 fi
 echo $_cmd --header "Authorization: Basic $_creds" "$_url"
-$_cmd --header "Authorization: Basic $_creds" "$_url"
+wget -q --header "Authorization: Basic $_creds" "$_url"
