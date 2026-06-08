@@ -127,4 +127,5 @@ else
 fi
 
 sh -c "$($_cmd https://get.chezmoi.io)" sh init --apply https://github.com/DrUbermann/dotfiles-init-test.git
-LGR_LVL_CNSL=0 "$HOME"/chezmoi.tmp/init.ps1
+#export LGR_LVL_CNSL=0 
+"$HOME/chezmoi.tmp/init.ps1"
