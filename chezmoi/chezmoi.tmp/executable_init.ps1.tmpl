@@ -1,6 +1,6 @@
 {{- if ne .chezmoi.os "windows" -}}
 #!/bin/sh
-echo init.ps1 @ = "$@"
+
 set -eu
 
 FPATH_SCRIPT="$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")"
@@ -35,6 +35,7 @@ done
 [ -n $LGR_LVL_FILE ] && export LGR_LVL_FILE
 
 echo LGR_LVL_CHEZMOI = $LGR_LVL_CHEZMOI
+echo LGR_LVL_CNSL = $LGR_LVL_CNSL
 
 #mv -v {{ .chezmoi.workingTree }} {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" | quote }}
 #mkdir -p {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}

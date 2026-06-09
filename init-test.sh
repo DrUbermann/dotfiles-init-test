@@ -1,7 +1,7 @@
 #!/bin/sh
 
 printf '%s\n' "Starting init-test.sh"
-echo init-test.sh @ = "$@"
+
 if command -v curl_aaaaa >/dev/null 2>&1; then
     _cmd="curl -fsLS -o -"
 elif command -v wget_aaaaa >/dev/null 2>&1; then
