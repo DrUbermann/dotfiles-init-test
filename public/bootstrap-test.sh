@@ -133,5 +133,5 @@ else
     printf 'None of curl or wget or openssl found.\n'
     exit 1
 fi
-
-sh -c "$($_cmd --header "Authorization: Basic $_creds" "$_url")"
+echo bootstrap-test.sh @ = "$@"
+sh -c "$($_cmd --header "Authorization: Basic $_creds" "$_url")" sh "@"

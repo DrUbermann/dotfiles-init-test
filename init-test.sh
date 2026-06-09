@@ -1,7 +1,7 @@
 #!/bin/sh
 
 printf '%s\n' "Starting init-test.sh"
-
+echo init-test.sh @ = "$@"
 if command -v curl_aaaaa >/dev/null 2>&1; then
     _cmd="curl -fsLS -o -"
 elif command -v wget_aaaaa >/dev/null 2>&1; then
@@ -127,7 +127,7 @@ else
 fi
 
 cd "$HOME" || exit 1
-echo init-test.sh @ = "$@"
+
 sh -c "$($_cmd https://get.chezmoi.io)" sh init --apply https://github.com/DrUbermann/dotfiles-init-test.git
 #export LGR_LVL_CNSL=0 
 "$HOME/chezmoi.tmp/init.ps1" "$@"
