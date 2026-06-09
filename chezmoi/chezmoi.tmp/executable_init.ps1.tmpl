@@ -7,8 +7,6 @@ FPATH_SCRIPT="$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")"
 #cd "$(dirname "$0")"
 cd "$(cd "$(dirname "$0")" && pwd)"
 
-{{ .chezmoi.executable | quote }} data | jq -r '.chezmoi | to_entries | sort_by(.key)[] | ".chezmoi.\(.key)=\(.value)"' && env | grep '^CHEZMOI' | sort
-
 . ./.env
 
 LGR_LVL_CNSL=${LGR_LVL_CNSL:-}
@@ -35,6 +33,8 @@ while [ "$#" -gt 0 ]; do
 done
 [ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
 [ -n $LGR_LVL_FILE ] && export LGR_LVL_FILE
+
+echo LGR_LVL_CHEZMOI = $LGR_LVL_CHEZMOI
 
 #mv -v {{ .chezmoi.workingTree }} {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" | quote }}
 #mkdir -p {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
