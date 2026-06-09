@@ -4,6 +4,8 @@
 {{- abortEmpty -}}
 */ -}}
 
+{{ .chezmoi.executable | quote }} data | jq -r '.chezmoi | to_entries | sort_by(.key)[] | ".chezmoi.\(.key)=\(.value)"' && env | grep '^CHEZMOI' | sort
+
 {{/* Declare prompt variables */}}
 {{- $interactive := false -}}  {{/* true if this machine should accept user input during setup */}}
 {{- $ephem := true -}}  {{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
@@ -16,7 +18,8 @@
 {{- end -}}
 
 {{- "" }}
-{{- writeToStdout "sourceDir = " (joinPath (osDir .chezmoi.workingTree) "chezmoi_src" (trimPrefix (printf "%s%s" .chezmoi.workingTree .chezmoi.pathSeparator) .chezmoi.sourceDir) | quote) "\n" -}}
+#sourceDir = {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" | quote }}
+## NB: This is the '.chezmoi.sourceDir' Source Dir including the dir in the Working Tree specified by .chezmoiroot
 #sourceDir = {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" (trimPrefix (printf "%s%s" .chezmoi.workingTree .chezmoi.pathSeparator) .chezmoi.sourceDir) | quote }}
 #persistentState = {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 scriptTempDir = {{ joinPath .chezmoi.homeDir "chezmoi.tmp" | quote }}

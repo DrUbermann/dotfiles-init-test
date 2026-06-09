@@ -143,14 +143,20 @@ chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)
 {{- else -}}
 #!/usr/bin/env pwsh
 
-
-
-
 Write-Output "Running 'executable_init.ps1.tmpl' as a powershell script."
 
+## Equivalent of set -eu
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
 
+$FPATH_SCRIPT = $PSCommandPath
+Set-Location $PSScriptRoot
 
-
+## Equivalent of . ./.env
+Get-Content .\.env | Where-Object { $_ -notmatch '^\s*#' -and $_ -match '=' } | ForEach-Object {
+    $name, $value = ($_ -replace '^\s*export\s+', '') -split '=', 2
+    Set-Item "Env:$($name.Trim())" $value.Trim()
+}
 
 {{- end -}}
 
