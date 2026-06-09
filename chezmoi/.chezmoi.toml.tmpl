@@ -4,8 +4,6 @@
 {{- abortEmpty -}}
 */ -}}
 
-{{ .chezmoi.executable | quote }} data | jq -r '.chezmoi | to_entries | sort_by(.key)[] | ".chezmoi.\(.key)=\(.value)"' && env | grep '^CHEZMOI' | sort
-
 {{/* Declare prompt variables */}}
 {{- $interactive := false -}}  {{/* true if this machine should accept user input during setup */}}
 {{- $ephem := true -}}  {{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}

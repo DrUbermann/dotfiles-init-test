@@ -7,6 +7,8 @@ FPATH_SCRIPT="$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")"
 #cd "$(dirname "$0")"
 cd "$(cd "$(dirname "$0")" && pwd)"
 
+{{ .chezmoi.executable | quote }} data | jq -r '.chezmoi | to_entries | sort_by(.key)[] | ".chezmoi.\(.key)=\(.value)"' && env | grep '^CHEZMOI' | sort
+
 . ./.env
 
 LGR_LVL_CNSL=${LGR_LVL_CNSL:-}
