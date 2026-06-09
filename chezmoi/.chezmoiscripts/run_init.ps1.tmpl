@@ -2,7 +2,7 @@
 #!/bin/sh
 echo "Running 'run_init.ps1.tmpl' as a posix shell script."
 
-{{ .chezmoi.executable | quote }} data | jq -r '.chezmoi | to_entries | sort_by(.key)[] | ".chezmoi.\(.key)=\(.value)"' && env | grep '^CHEZMOI' | sort
+#{{ .chezmoi.executable | quote }} data | jq -r '.chezmoi | to_entries | sort_by(.key)[] | ".chezmoi.\(.key)=\(.value)"' && env | grep '^CHEZMOI' | sort
 
 {{- else -}}
 #! /usr/bin/env pwsh

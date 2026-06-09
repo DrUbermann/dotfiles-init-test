@@ -1,6 +1,6 @@
 {{- if ne .chezmoi.os "windows" -}}
 #!/bin/sh
-
+echo init.ps1 @ = "$@"
 set -eu
 
 FPATH_SCRIPT="$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")"
