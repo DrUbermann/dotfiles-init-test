@@ -34,7 +34,7 @@ done
 [ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
 [ -n $LGR_LVL_FILE ] && export LGR_LVL_FILE
 
-#mv -v {{ .chezmoi.sourceDir }} {{ joinPath (osDir .chezmoi.sourceDir) "chezmoi_src" | quote }}
+#mv -v {{ .chezmoi.workingTree }} {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" | quote }}
 #mkdir -p {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" | quote }}
 #mv -v {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 
@@ -59,14 +59,13 @@ export GITHUB_PAT
     --config-path={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} \
     --depth={{ if .ephem }}1{{ else }}0{{ end }} \
     https://{{ if not (lookPath "git") }}"$GITHUB_PAT@"{{ end }}github.com/DrUbermann/dotfiles-test-v01.git
-    ## Note that $GITHUB_PAT will be stored in plain text in {.chezmoi.sourceDir}/.git/config
+    ## Note that $GITHUB_PAT will be stored in plain text in {.chezmoi.workingTree}/.git/config
     ##   if GITHUB_PAT is defined and git is not installed
 
 {{ .chezmoi.executable | quote }} $LGR_LVL_CHEZMOI purge --binary --force
 
 ## Remove token from url in config file
 ## This will require repo to get $GITHUB_PAT from secure source rather than plain text in the url
-echo {{ joinPath (osDir .chezmoi.sourceDir) | quote }}
 mv {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config" | quote }} ./gitconfig
 sed 's|^\([[:space:]]*url[[:space:]]*=[[:space:]]*https://\)[A-Za-z0-9_-]*@|\1|' "./gitconfig" > {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config" | quote }}
 

@@ -4,9 +4,6 @@
 {{- abortEmpty -}}
 */ -}}
 
-#{- writeToStdout ".chezmoi.sourceFile = " (quote .chezmoi.sourceFile) "\n" -}}
-{{- writeToStdout ".chezmoi.targetFile = " (quote .chezmoi.targetFile) "\n" -}}
-
 {{/* Declare prompt variables */}}
 {{- $interactive := false -}}  {{/* true if this machine should accept user input during setup */}}
 {{- $ephem := true -}}  {{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
@@ -19,7 +16,8 @@
 {{- end -}}
 
 {{- "" }}
-#sourceDir = {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" | quote }}
+{{- writeToStdout "sourceDir = " (joinPath (osDir .chezmoi.workingTree) "chezmoi_src" (trimPrefix (printf "%s%s" .chezmoi.workingTree .chezmoi.pathSeparator) .chezmoi.sourceDir) | quote) "\n" -}}
+#sourceDir = {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" (trimPrefix (printf "%s%s" .chezmoi.workingTree .chezmoi.pathSeparator) .chezmoi.sourceDir) | quote }}
 #persistentState = {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 scriptTempDir = {{ joinPath .chezmoi.homeDir "chezmoi.tmp" | quote }}
 
