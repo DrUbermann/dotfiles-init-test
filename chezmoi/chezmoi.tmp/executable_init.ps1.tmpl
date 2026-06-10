@@ -210,7 +210,7 @@ $a = @(
 )
 & {{ .chezmoi.executable | quote }} @a
 
-& {{ .chezmoi.executable | quote }} $LGR_LVL_CHEZMOI purge --binary --force
+& {{ .chezmoi.executable | quote }} $LGR_LVL_CHEZMOI purge --force  ## --binary flag not available in winos version
 
 ## Remove token from url in config file
 ## This will require repo to get $GITHUB_PAT from secure source rather than plain text in the url
@@ -240,6 +240,8 @@ $client = New-Object System.Net.WebClient
 $client.Headers.Add("User-Agent", "PowerShell")
 $client.DownloadFile($redirectUrl, "repo.zip")
 
+ls
+echo $PWD
 Expand-Archive -Path "repo.zip" -DestinationPath "."
 $inner = Get-ChildItem -Directory | Select-Object -First 1
 Rename-Item $inner.FullName "cmn"
