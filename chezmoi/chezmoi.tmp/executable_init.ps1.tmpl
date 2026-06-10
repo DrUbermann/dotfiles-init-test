@@ -241,11 +241,12 @@ $client = New-Object System.Net.WebClient
 $client.Headers.Add("User-Agent", "PowerShell")
 $client.DownloadFile($redirectUrl, (Join-Path $PWD "repo.zip"))
 
-ls
-echo $PWD
 Expand-Archive -Path "repo.zip" -DestinationPath "."
+ls
+echo '-------------'
 #$inner = Get-ChildItem -Directory | Select-Object -First 1
 $inner = Get-ChildItem -Directory | Where-Object { $_.Name -like "$reponame-*" } | Select-Object -First 1
+$inner | Format-List *
 Rename-Item $inner.FullName "cmn"
 {{ end }}
 
