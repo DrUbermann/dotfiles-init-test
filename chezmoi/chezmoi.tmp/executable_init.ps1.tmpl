@@ -174,8 +174,8 @@ foreach ($arg in $args) {
         default     { Write-Error "Unknown parameter: ${arg}"; exit 1 }
     }
 }
-if (![string]::IsNullOrEmpty($LGR_LVL_CNSL)) { $Env:LGR_LVL_CNSL = $LGR_LVL_CNSL }
-if (![string]::IsNullOrEmpty($LGR_LVL_FILE)) { $Env:LGR_LVL_FILE = $LGR_LVL_FILE }
+if ((Test-Path variable:LGR_LVL_CNSL) -and ![string]::IsNullOrEmpty($LGR_LVL_CNSL)) { $Env:LGR_LVL_CNSL = $LGR_LVL_CNSL }
+if ((Test-Path variable:LGR_LVL_FILE) -and ![string]::IsNullOrEmpty($LGR_LVL_FILE)) { $Env:LGR_LVL_FILE = $LGR_LVL_FILE }
 
 if ([string]::IsNullOrEmpty($GITHUB_PAT)) {
     ## Check if input is possible
