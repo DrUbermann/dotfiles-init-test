@@ -22,7 +22,7 @@ if (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock") 
     }
     if (-not (Test-DeveloperMode)) {
         $regCmd = "New-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock' -Name 'AllowDevelopmentWithoutDevLicense' -PropertyType DWORD -Value 1 -Force"
-        Start-Process powershell.exe -Verb RunAs -ArgumentList $regCmd -Wait
+        Start-Process powershell.exe -Verb RunAs -WindowStyle Hidden -ArgumentList $regCmd -Wait
     }
     if (-not (Test-DeveloperMode)) {
         throw "Failed to enable Developer Mode"

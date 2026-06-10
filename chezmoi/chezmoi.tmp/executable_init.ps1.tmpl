@@ -191,21 +191,21 @@ if ([string]::IsNullOrEmpty($GITHUB_PAT)) {
 
 $Env:GIT_ASKPASS = Join-Path -Path $PWD -ChildPath "git_askpass.cmd"
 $Env:GITHUB_PAT = $GITHUB_PAT
-$args = @(
+$a = @(
     $LGR_LVL_CHEZMOI,
-    "--config={{ joinPath (osDir .chezmoi.configFile) "chezmoi.toml" | quote }}",
-    "--source={{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" | quote }}",
-    "--persistent-state={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}",
-    "init",
-    "--config-path={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}",
-    "--depth={{ if .ephem }}1{{ else }}0{{ end }}",
-    "https://{{ if not (lookPath "git") }}"$GITHUB_PAT@"{{ end }}github.com/DrUbermann/dotfiles-test-v01.git"
+    '--config={{ joinPath (osDir .chezmoi.configFile) "chezmoi.toml" | quote }}',
+    '--source={{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" | quote }}',
+    '--persistent-state={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}',
+    'init',
+    '--config-path={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}',
+    '--depth={{ if .ephem }}1{{ else }}0{{ end }}',
+    "https://{{ if not (lookPath "git") }}`"$GITHUB_PAT@`"{{ end }}github.com/DrUbermann/dotfiles-test-v01.git"
     ## Note that $GITHUB_PAT will be stored in plain text in {.chezmoi.workingTree}/.git/config
     ##   if GITHUB_PAT is defined and git is not installed
 )
-{{ .chezmoi.executable | quote }} @args
+& {{ .chezmoi.executable | quote }} @a
 
-{{ .chezmoi.executable | quote }} $LGR_LVL_CHEZMOI purge --binary --force
+& {{ .chezmoi.executable | quote }} $LGR_LVL_CHEZMOI purge --binary --force
 
 ## Remove token from url in config file
 ## This will require repo to get $GITHUB_PAT from secure source rather than plain text in the url
