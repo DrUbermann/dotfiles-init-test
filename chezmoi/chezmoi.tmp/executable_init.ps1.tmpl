@@ -166,6 +166,7 @@ if (Test-Path $EnvFile) {
     Write-Warning "Could not find '${EnvFile}'."
 }
 
+$LGR_LVL_CHEZMOI = ''
 if ([string]::IsNullOrEmpty($Env:LGR_FPATH_FILE)) { $Env:LGR_FPATH_FILE = if ((Test-Path variable:LGR_FPATH_FILE) -and ![string]::IsNullOrEmpty($LGR_FPATH_FILE)) { $LGR_FPATH_FILE } else { Join-Path $PWD "chezmoi_main.log" } }
 foreach ($arg in $args) {
     switch ($arg) {
