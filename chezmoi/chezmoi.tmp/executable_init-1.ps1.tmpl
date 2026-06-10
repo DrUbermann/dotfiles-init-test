@@ -26,15 +26,14 @@ chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)
 #exec rm -vi ./* ./.env
 #exec rm -rf ./* ./.env
 #find . -mindepth 1 -print -delete
-for item in ./*; do
-    name="${item#./}"
-    printf "Delete '%s'? (y/n): " "$name" > /dev/tty
+for _f in ./*; do
+    printf "Delete '%s'? [y/N]: " "$_f" > /dev/tty
     read -r response < /dev/tty
     if [ "$response" = "y" ]; then
-        rm -rf "$item"
-        printf "Deleted '%s'\n" "$name"
+        rm -rf "$_f"
+        printf "Deleted '%s'\n" "$_f"
     else
-        printf "Skipped '%s'\n" "$name"
+        printf "Skipped '%s'\n" "$_f"
     fi
 done
 
@@ -42,7 +41,12 @@ done
 {{- else -}}
 #!/usr/bin/env pwsh
 
-Write-Output "Running 'executable_init-1.ps1.tmpl' as a powershell script."
+Write-Output "Running 'executable_init-1.ps1.tmpl' as a powershell script." ############################################
+
+## Equivalent of set -eu
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+
 
 {{- end -}}
 

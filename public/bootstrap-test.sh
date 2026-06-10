@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -eu
+
 ## prompt for password without echoing it
 if ! tty > /dev/null 2>&1; then
     printf '%s\n' "Error: no controlling terminal for user inputs." >&2

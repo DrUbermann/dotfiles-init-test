@@ -130,6 +130,8 @@ exit 0
 
 Write-Output "Running 'executable_init.ps1.tmpl' as a powershell script."
 
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+
 ## Equivalent of set -eu
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -233,10 +235,12 @@ New-Item -Path {{ osDir .chezmoi.configFile | quote }} -ItemType Directory -Forc
 if ($PSVersionTable.PSVersion.Major -ge 5 -and 
     (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -ErrorAction SilentlyContinue).AllowDevelopmentWithoutDevLicense -eq 1) {
     ## Use native PowerShell 5+ symbolic link
-    New-Item -Path {{ .chezmoi.configFile }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force
+    New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force
 } else {
+    ## Create symbolic link as Administrator
+    Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command `"cmd /c mklink {{ .chezmoi.configFile | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}`"" -Wait
     ## Fall back to a standard cmd hard link (works without Administrator Access & Developer Mode)
-    cmd /c mklink /H {{ .chezmoi.configFile }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}
+    #cmd /c mklink /H {{ .chezmoi.configFile | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}
 }
 
 if (($Env:Path -split ';') -notcontains "$HOME/.local/bin") {
@@ -250,7 +254,7 @@ chezmoi $LGR_LVL_CHEZMOI apply --include scripts
 chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
 
 Get-ChildItem | ForEach-Object {
-    $response = Read-Host "Delete '$($_.Name)'? (y/n)"
+    $response = Read-Host "Delete '$($_.Name)'? [y/N]"
     if ($response -eq 'y') {
         Remove-Item $_.FullName -Recurse -Force
         Write-Host "Deleted '$($_.Name)'"
