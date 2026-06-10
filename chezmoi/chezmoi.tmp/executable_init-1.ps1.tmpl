@@ -8,6 +8,8 @@ cd "$(cd "$(dirname "$0")" && pwd)"
 . ./.env
 
 [ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
+[ -n $LGR_LVL_FILE ] && export LGR_LVL_FILE
+
 
 chezmoi $LGR_LVL_CHEZMOI apply --include scripts
 
@@ -20,21 +22,27 @@ chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)
 
 #chezmoi $LGR_LVL_CHEZMOI update
 
+
 #exec rm -vi ./* ./.env
 #exec rm -rf ./* ./.env
 #find . -mindepth 1 -print -delete
+for item in ./*; do
+    name="${item#./}"
+    printf "Delete '%s'? (y/n): " "$name" > /dev/tty
+    read -r response < /dev/tty
+    if [ "$response" = "y" ]; then
+        rm -rf "$item"
+        printf "Deleted '%s'\n" "$name"
+    else
+        printf "Skipped '%s'\n" "$name"
+    fi
+done
+
 
 {{- else -}}
 #!/usr/bin/env pwsh
 
-
-
-
 Write-Output "Running 'executable_init-1.ps1.tmpl' as a powershell script."
-
-
-
-
 
 {{- end -}}
 

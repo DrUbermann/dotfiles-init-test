@@ -115,3 +115,7 @@ ssl_get() {
     printf 'ssl_get: too many redirects\n' >&2
     return 1
 }
+
+case "$0" in
+    *ssl_get.sh) ssl_get "$@" ;;  # running directly
+esac

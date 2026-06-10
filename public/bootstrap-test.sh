@@ -1,8 +1,13 @@
 #!/bin/sh
 
 ## prompt for password without echoing it
+if ! tty > /dev/null 2>&1; then
+    printf '%s\n' "Error: no controlling terminal for user inputs." >&2
+    exit 1
+fi
 printf '\nPassword: ' > /dev/tty
 stty -echo < /dev/tty
+trap 'stty echo < /dev/tty' EXIT INT TERM
 read -r _password < /dev/tty
 stty echo < /dev/tty
 printf '\n' > /dev/tty

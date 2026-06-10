@@ -39,13 +39,17 @@ done
 #mv -v {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi" "chezmoistate.boltdb" | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}
 
 if [ -z "${GITHUB_PAT:-}" ]; then
-    printf '%s\n' "Enter login details for GitHub main dotfiles repo:"
-    printf "Main dotfiles GitHub login Personal Access Token (PAT) (leave blank to fall back to GitHub credentials manager): " >&2
-    stty -echo
-    trap 'stty echo' EXIT INT TERM
-    read -r GITHUB_PAT
-    stty echo
-    printf '\n' >&2
+    if ! tty > /dev/null 2>&1; then
+        printf '%s\n' "Error: No controlling terminal for user inputs." >&2
+        exit 1
+    fi
+    printf '%s\n' "Enter login details for GitHub main dotfiles repo:" > /dev/tty
+    printf "Main dotfiles GitHub login Personal Access Token (PAT) (leave blank to fall back to GitHub credentials manager): " > /dev/tty
+    stty -echo < /dev/tty
+    trap 'stty echo < /dev/tty' EXIT INT TERM
+    read -r GITHUB_PAT < /dev/tty
+    stty echo < /dev/tty
+    printf '\n' > /dev/tty
 fi
 
 export GIT_ASKPASS="$(pwd)"/git_askpass.sh
@@ -66,7 +70,7 @@ export GITHUB_PAT
 
 ## Remove token from url in config file
 ## This will require repo to get $GITHUB_PAT from secure source rather than plain text in the url
-mv {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config" | quote }} ./gitconfig
+mv {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config" | quote }} "./gitconfig"
 sed 's|^\([[:space:]]*url[[:space:]]*=[[:space:]]*https://\)[A-Za-z0-9_-]*@|\1|' "./gitconfig" > {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config" | quote }}
 
 {{ if lookPath "git" }}
@@ -74,8 +78,7 @@ git clone --depth 1 https://github.com/DrUbermann/shell-common-test cmn
 rm -rf cmn/.git
 tar -czf repo.tar.gz -C cmn/ .
 {{ else }}
-{{ if not (or (lookPath "curl") (lookPath "wget")) }}. ./ssl_get.sh{{ end }}
-{{ if (lookPath "curl") }}curl -fsLS -o{{ else if (lookPath "wget") }}wget -q -O{{ else if (and (lookPath "openssl") (exec "openssl" "s_client" "-connect" "example.com:443" "-servername" "example.com")) }}ssl_get -o{{ else }}echo curl and wget and ssl not available, exiting; exit 127 #{{ end }} repo.tar.gz \
+{{ if (lookPath "curl") }}curl -fsLS -o{{ else if (lookPath "wget") }}wget -q -O{{ else if (and (lookPath "openssl") (exec "openssl" "s_client" "-connect" "example.com:443" "-servername" "example.com")) }}./ssl_get -o{{ else }}echo curl and wget and ssl not available, exiting; exit 127 #{{ end }} repo.tar.gz \
     --header "Authorization: Bearer $GITHUB_PAT" --header "Accept: application/vnd.github+json" https://api.github.com/repos/drubermann/shell-common-test/tarball/master
 tar -xzf repo.tar.gz && mv $(tar -tzf repo.tar.gz | head -1 | cut -f1 -d'/') cmn
 {{ end }}
@@ -122,24 +125,6 @@ sh "$_fpath_script_1"
 exit 0
 
 
-## Run add to sudoers script here
-
-## Start a new login shell so user will have new elevated privileges reflected for sudo/doas in chezmoi scripts
-#su - $(id -un) -c "PATH='$PATH' chezmoi $LGR_LVL_CHEZMOI apply --include scripts"
-
-chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
-
-#sudo apt -y install git
-
-## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
-#chezmoi $LGR_LVL_CHEZMOI git remote set-url origin https://github.com/DrUbermann/dotfiles-test-v01.git
-
-#chezmoi $LGR_LVL_CHEZMOI update
-
-#exec rm -vi ./* ./.env
-#exec rm -rf ./* ./.env
-#find . -mindepth 1 -print -delete
-
 {{- else -}}
 #!/usr/bin/env pwsh
 
@@ -153,10 +138,127 @@ $FPATH_SCRIPT = $PSCommandPath
 Set-Location $PSScriptRoot
 
 ## Equivalent of . ./.env
-Get-Content .\.env | Where-Object { $_ -notmatch '^\s*#' -and $_ -match '=' } | ForEach-Object {
-    $name, $value = ($_ -replace '^\s*export\s+', '') -split '=', 2
-    Set-Item "Env:$($name.Trim())" $value.Trim()
+$EnvFile = ".env"
+if (Test-Path $EnvFile) {
+    Get-Content $EnvFile | ForEach-Object {
+        ## Clean up whitespace and skip empty lines or comments
+        $line = $_.Trim()
+        if ([string]::IsNullOrEmpty($line) -or $line.StartsWith("#")) { return }
+        ## Case 1: Exported variables (e.g., export BAR=bar)
+        if ($line -match '^export\s+(?<key>[^=]+)=(?<value>.*)$') {
+            $key = $Matches['key'].Trim()
+            $value = $Matches['value'].Trim("'`"" )  ## Strips outer quotes if present
+            ## Create BOTH local variable and environment variable
+            Set-Item "Env:$key" $value
+            Set-Variable -Name $key -Value $value -Force
+        }
+        ## Case 2: Regular variables (e.g., FOO=foo)
+        elseif ($line -match '^(?<key>[^=]+)=(?<value>.*)$') {
+            $key = $Matches['key'].Trim()
+            $value = $Matches['value'].Trim("'`"" )  ## Strips outer quotes if present
+            ## Create local variable ONLY
+            Set-Variable -Name $key -Value $value -Force
+        }
+    }
+} else {
+    Write-Warning "Could not find '${EnvFile}'."
 }
+
+if ([string]::IsNullOrEmpty($Env:LGR_FPATH_FILE)) { $Env:LGR_FPATH_FILE = if (![string]::IsNullOrEmpty($LGR_FPATH_FILE)) { $LGR_FPATH_FILE } else { "$PWD/chezmoi_main.log" } }
+foreach ($arg in $args) {
+    switch ($arg) {
+        '--verbose' { $LGR_LVL_CHEZMOI = $arg; $LGR_LVL_CNSL = 'INFO'; $LGR_LVL_FILE = 'INFO' }
+        '--debug'   { $LGR_LVL_CHEZMOI = $arg; $LGR_LVL_CNSL = 'DEBUG'; $LGR_LVL_FILE = 'DEBUG' }
+        default     { Write-Error "Unknown parameter: ${arg}"; exit 1 }
+    }
+}
+if (![string]::IsNullOrEmpty($LGR_LVL_CNSL)) { $Env:LGR_LVL_CNSL = $LGR_LVL_CNSL }
+if (![string]::IsNullOrEmpty($LGR_LVL_FILE)) { $Env:LGR_LVL_FILE = $LGR_LVL_FILE }
+
+if ([string]::IsNullOrEmpty($GITHUB_PAT)) {
+    ## Check if input is possible
+    if ([Console]::IsInputRedirected) {
+        Write-Error "Error: no controlling terminal for user inputs."
+        exit 1
+    }
+    Write-Host "Enter login details for GitHub main dotfiles repo:"
+    $GITHUB_PAT = Read-Host -Prompt "Main dotfiles GitHub login Personal Access Token (PAT) (leave blank to fall back to GitHub credentials manager)" -AsSecureString
+    ## Convert SecureString to plain text
+    $GITHUB_PAT = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($GITHUB_PAT))
+}
+
+$Env:GIT_ASKPASS = Join-Path -Path $PWD -ChildPath "git_askpass.cmd"
+$Env:GITHUB_PAT = $GITHUB_PAT
+$args = @(
+    $LGR_LVL_CHEZMOI,
+    "--config={{ joinPath (osDir .chezmoi.configFile) "chezmoi.toml" | quote }}",
+    "--source={{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" | quote }}",
+    "--persistent-state={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoistate.boltdb" | quote }}",
+    "init",
+    "--config-path={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}",
+    "--depth={{ if .ephem }}1{{ else }}0{{ end }}",
+    "https://{{ if not (lookPath "git") }}"$GITHUB_PAT@"{{ end }}github.com/DrUbermann/dotfiles-test-v01.git"
+    ## Note that $GITHUB_PAT will be stored in plain text in {.chezmoi.workingTree}/.git/config
+    ##   if GITHUB_PAT is defined and git is not installed
+)
+{{ .chezmoi.executable | quote }} @args
+
+{{ .chezmoi.executable | quote }} $LGR_LVL_CHEZMOI purge --binary --force
+
+## Remove token from url in config file
+## This will require repo to get $GITHUB_PAT from secure source rather than plain text in the url
+Move-Item {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config" | quote }} "./gitconfig"
+(Get-Content "./gitconfig") -replace '^(\s*url\s*=\s*https://)[A-Za-z0-9_-]*@', '$1' | Set-Content {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config" | quote }}
+
+## Use integer value for TLS 1.2 to support .NET 4.0
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]3072
+
+{{ if lookPath "git" }}
+git clone --depth 1 https://github.com/DrUbermann/shell-common-test cmn
+Get-ChildItem -Recurse -Force cmn/.git | Remove-Item -Recurse -Force ; Remove-Item -Force cmn/.git
+Compress-Archive -Path cmn/* -DestinationPath repo.zip
+{{ else }}
+$client = New-Object System.Net.WebClient
+$client.Headers.Add("Authorization", "Bearer $GITHUB_PAT")
+$client.Headers.Add("Accept", "application/vnd.github+json")
+$client.DownloadFile("https://api.github.com/repos/drubermann/shell-common-test/zipball/master", "repo.zip")
+powershellExpand-Archive -Path "repo.zip" -DestinationPath "."
+$inner = Get-ChildItem -Directory | Select-Object -First 1
+Rename-Item $inner.FullName "cmn"
+{{ end }}
+
+& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://get.chezmoi.io/ps1"))) -b "$HOME\.local\bin"
+
+New-Item -Path {{ osDir .chezmoi.configFile | quote }} -ItemType Directory -Force
+if ($PSVersionTable.PSVersion.Major -ge 5 -and 
+    (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -ErrorAction SilentlyContinue).AllowDevelopmentWithoutDevLicense -eq 1) {
+    ## Use native PowerShell 5+ symbolic link
+    New-Item -Path {{ .chezmoi.configFile }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force
+} else {
+    ## Fall back to a standard cmd hard link (works without Administrator Access & Developer Mode)
+    cmd /c mklink /H {{ .chezmoi.configFile }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}
+}
+
+if (($Env:Path -split ';') -notcontains "$HOME/.local/bin") {
+    $Env:Path = "$HOME/.local/bin;$Env:Path"
+}
+
+chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
+
+chezmoi $LGR_LVL_CHEZMOI apply --include scripts
+
+chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
+
+Get-ChildItem | ForEach-Object {
+    $response = Read-Host "Delete '$($_.Name)'? (y/n)"
+    if ($response -eq 'y') {
+        Remove-Item $_.FullName -Recurse -Force
+        Write-Host "Deleted '$($_.Name)'"
+    } else {
+        Write-Host "Skipped '$($_.Name)'"
+    }
+}
+
 
 {{- end -}}
 
