@@ -225,6 +225,9 @@ git clone --depth 1 https://github.com/DrUbermann/shell-common-test cmn
 Get-ChildItem -Recurse -Force cmn/.git | Remove-Item -Recurse -Force ; Remove-Item -Force cmn/.git
 Compress-Archive -Path cmn/* -DestinationPath repo.zip
 {{ else }}
+#### Simpler version for PowerShell 5+
+# Invoke-WebRequest -Uri "https://api.github.com/repos/DrUbermann/shell-common-test/zipball/master" -Headers @{ Authorization = "Bearer $GITHUB_PAT" } -OutFile "repo.zip"
+
 $request = [System.Net.HttpWebRequest]::Create("https://api.github.com/repos/DrUbermann/shell-common-test/zipball/master")
 $request.Method = "GET"
 $request.Headers.Add("Authorization", "Bearer $GITHUB_PAT")
@@ -237,12 +240,7 @@ $client = New-Object System.Net.WebClient
 $client.Headers.Add("User-Agent", "PowerShell")
 $client.DownloadFile($redirectUrl, "repo.zip")
 
-# $client = New-Object System.Net.WebClient
-# $client.Headers.Add("Authorization", "Bearer $GITHUB_PAT")
-# $client.Headers.Add("Accept", "application/vnd.github+json")
-# $client.DownloadFile("https://api.github.com/repos/drubermann/shell-common-test/zipball/master", "repo.zip")
-
-powershellExpand-Archive -Path "repo.zip" -DestinationPath "."
+Expand-Archive -Path "repo.zip" -DestinationPath "."
 $inner = Get-ChildItem -Directory | Select-Object -First 1
 Rename-Item $inner.FullName "cmn"
 {{ end }}
