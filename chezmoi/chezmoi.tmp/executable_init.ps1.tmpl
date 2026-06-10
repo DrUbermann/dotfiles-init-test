@@ -130,7 +130,11 @@ exit 0
 
 Write-Output "Running 'executable_init.ps1.tmpl' as a powershell script."
 
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction SilentlyContinue
+try {
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+} catch [System.Security.SecurityException] {
+    ## suppress only the ExecutionPolicyOverride warning
+}
 
 ## Equivalent of set -eu
 $ErrorActionPreference = 'Stop'
