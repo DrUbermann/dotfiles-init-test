@@ -243,10 +243,10 @@ $client.DownloadFile($redirectUrl, (Join-Path $PWD "repo.zip"))
 
 Expand-Archive -Path "repo.zip" -DestinationPath "."
 ls
-echo '-------------'
+echo '###############################################################################'
 #$inner = Get-ChildItem -Directory | Select-Object -First 1
-$inner = Get-ChildItem -Directory | Where-Object { $_.Name -like "$reponame-*" } | Select-Object -First 1
-$inner | Format-List *
+$inner = Get-ChildItem -Directory | Where-Object { $_.Name -like "*$reponame-*" } | Select-Object -First 1
+echo inner is ($inner | Format-List *)
 Rename-Item $inner.FullName "cmn"
 {{ end }}
 
