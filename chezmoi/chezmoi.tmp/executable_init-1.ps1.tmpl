@@ -49,6 +49,9 @@ Set-StrictMode -Version Latest
 
 
 
+
+
+
 ## Enable Developer Mode
 $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
 if (!(Test-Path $regPath)) {
@@ -57,7 +60,21 @@ if (!(Test-Path $regPath)) {
 Set-ItemProperty -Path $regPath -Name "AllowDevelopmentWithoutDevLicense" -Value 1 -Type DWord
 Set-ItemProperty -Path $regPath -Name "AllowAllTrustedApps" -Value 1 -Type DWord
 
+
+
 ## Enable Symbolic Link Creation
+
+
+
+
+
+if (!(whoami /priv | Select-String "SeCreateSymbolicLinkPrivilege")) {
+
+
+
+
+
+
 # Get the SID for the current user
 $sid = (New-Object System.Security.Principal.NTAccount($env:USERNAME)).Translate([System.Security.Principal.SecurityIdentifier]).Value
 
@@ -68,6 +85,7 @@ $tmpDb  = "$env:TEMP\secpol.db"
 secedit /export /cfg $tmpCfg /quiet
 
 # Add the user to SeCreateSymbolicLinkPrivilege
+
 $content = Get-Content $tmpCfg
 if ($content -match "SeCreateSymbolicLinkPrivilege") {
     $content = $content -replace "(SeCreateSymbolicLinkPrivilege\s*=\s*.*)", "`$1,*$sid"

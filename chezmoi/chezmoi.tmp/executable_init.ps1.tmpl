@@ -255,7 +255,7 @@ if ($PSVersionTable.PSVersion.Major -ge 5 -and
     (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -ErrorAction SilentlyContinue).AllowDevelopmentWithoutDevLicense -eq 1) {
     ## Use native PowerShell 5+ symbolic link
     try {
-        New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force
+        New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force | Out-Null
     } catch [System.UnauthorizedAccessException] {
         Write-Host "Insufficient privileges, retrying elevated..."
         Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force" -Wait -WindowStyle Hidden
