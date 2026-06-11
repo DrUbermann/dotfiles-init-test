@@ -251,20 +251,25 @@ Rename-Item $inner.FullName "cmn"
 & ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://get.chezmoi.io/ps1"))) -b "$HOME\.local\bin"
 
 New-Item -Path {{ osDir .chezmoi.configFile | quote }} -ItemType Directory -Force
-if ($PSVersionTable.PSVersion.Major -ge 5 -and 
-    (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -ErrorAction SilentlyContinue).AllowDevelopmentWithoutDevLicense -eq 1) {
+if ($PSVersionTable.PSVersion.Major -ge 5) {
     ## Use native PowerShell 5+ symbolic link
     try {
         New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force | Out-Null
     } catch [System.UnauthorizedAccessException] {
-        Write-Host "Insufficient privileges, retrying elevated..."
+        $msg = "This script needs to create a symbolic link.`n`nPlease click 'Yes' on the administrator prompt that is about to appear."
+        [System.Windows.MessageBox]::Show($msg, "Privilege Escalation Required", 'OK', 'Information')
         Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force" -Wait -WindowStyle Hidden
     }
 } else {
     ## Create symbolic link as Administrator (works without Developer Mode)
-    Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command `"cmd /c mklink {{ .chezmoi.configFile | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}`"" -Wait
-    ## Fall back to a standard cmd hard link (works without Administrator Access & Developer Mode)
-    #cmd /c mklink /H {{ .chezmoi.configFile | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}
+    $msg = "This script needs to create a symbolic link.`n`nPlease click 'Yes' on the administrator prompt that is about to appear."
+    [System.Windows.MessageBox]::Show($msg, "Privilege Escalation Required", 'OK', 'Information')
+    $proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command `"cmd /c mklink {{ .chezmoi.configFile | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}`"" -Wait -PassThru
+    if ($proc.ExitCode -ne 0) {
+        ## Fall back to a standard cmd hard link (works without Administrator Access & Developer Mode)
+        Write-Host "Symbolic Link creation failed; falling back to Hard Link."
+        cmd /c mklink /H {{ .chezmoi.configFile | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}
+    }
 }
 
 if (($Env:Path -split ';') -notcontains "$HOME/.local/bin") {
@@ -273,19 +278,30 @@ if (($Env:Path -split ';') -notcontains "$HOME/.local/bin") {
 
 chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 
-chezmoi $LGR_LVL_CHEZMOI apply --include scripts
+$msg = "This script needs to enable several settings that require elevated privileges.`n`nPlease click 'Yes' on the administrator prompt that is about to appear."
+[System.Windows.MessageBox]::Show($msg, "Privilege Escalation Required", 'OK', 'Information')
+$proc = Start-Process powershell.exe -Verb RunAs -File "$HOME/chezmoi.tmp/init-0.ps1" -Wait -PassThru
 
-chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
-
-Get-ChildItem | ForEach-Object {
-    $response = Read-Host "Delete '$($_.Name)'? [y/N]"
-    if ($response -eq 'y') {
-        Remove-Item $_.FullName -Recurse -Force
-        Write-Host "Deleted '$($_.Name)'"
-    } else {
-        Write-Host "Skipped '$($_.Name)'"
-    }
+## Variables used in next part of script
+[System.IO.File]::AppendAllLines(".\.env", [string[]]@("export Path=`"$env:Path`""))
+[System.IO.File]::AppendAllLines(".\.env", [string[]]@("export GIT_ASKPASS=`"$env:GIT_ASKPASS`""))
+[System.IO.File]::AppendAllLines(".\.env", [string[]]@("export GITHUB_PAT=`"$env:GITHUB_PAT`""))
+[System.IO.File]::AppendAllLines(".\.env", [string[]]@("LGR_LVL_CHEZMOI=`"$LGR_LVL_CHEZMOI`""))
+Get-ChildItem Env: | Where-Object { $_.Name -match '^LGR_' } | ForEach-Object {
+    $escaped = $_.Value -replace "'", "'\''"
+    [System.IO.File]::AppendAllLines(".\.env", [string[]]"$($_.Name)='$escaped'")
 }
+
+if ($proc.ExitCode -eq 3) {
+    Write-Output "Must reboot after administrative settings set.  Continue this script with:", 'powershell.exe -Verb RunAs -File "$HOME/chezmoi.tmp/init-0.ps1"'
+} elseif ($proc.ExitCode -ne 0) {
+    exit $proc.ExitCode
+}
+
+## Run next part of init script
+powershell.exe -Verb RunAs -File "$HOME/chezmoi.tmp/init-0.ps1"
+
+exit 0
 
 
 {{- end -}}

@@ -47,6 +47,61 @@ Write-Output "Running 'executable_init-1.ps1.tmpl' as a powershell script." ####
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
+Set-Location $PSScriptRoot
+
+## Equivalent of . ./.env
+$EnvFile = ".env"
+if (Test-Path $EnvFile) {
+    Get-Content $EnvFile | ForEach-Object {
+        ## Clean up whitespace and skip empty lines or comments
+        $line = $_.Trim()
+        if ([string]::IsNullOrEmpty($line) -or $line.StartsWith("#")) { return }
+        ## Case 1: Exported variables (e.g., export BAR=bar)
+        if ($line -match '^export\s+(?<key>[^=]+)=(?<value>.*)$') {
+            $key = $Matches['key'].Trim()
+            $value = $Matches['value'].Trim("'`"" )  ## Strips outer quotes if present
+            ## Create BOTH local variable and environment variable
+            Set-Item "Env:$key" $value
+            Set-Variable -Name $key -Value $value -Force
+        }
+        ## Case 2: Regular variables (e.g., FOO=foo)
+        elseif ($line -match '^(?<key>[^=]+)=(?<value>.*)$') {
+            $key = $Matches['key'].Trim()
+            $value = $Matches['value'].Trim("'`"" )  ## Strips outer quotes if present
+            ## Create local variable ONLY
+            Set-Variable -Name $key -Value $value -Force
+        }
+    }
+} else {
+    Write-Warning "Could not find '${EnvFile}'."
+}
+
+if ((Test-Path variable:LGR_LVL_CNSL) -and ![string]::IsNullOrEmpty($LGR_LVL_CNSL)) { $Env:LGR_LVL_CNSL = $LGR_LVL_CNSL }
+if ((Test-Path variable:LGR_LVL_FILE) -and ![string]::IsNullOrEmpty($LGR_LVL_FILE)) { $Env:LGR_LVL_FILE = $LGR_LVL_FILE }
+
+
+chezmoi $LGR_LVL_CHEZMOI apply --include scripts
+
+chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
+
+## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
+#chezmoi $LGR_LVL_CHEZMOI git remote set-url origin https://github.com/DrUbermann/dotfiles-test-v01.git
+
+#chezmoi $LGR_LVL_CHEZMOI update
+
+
+Get-ChildItem | ForEach-Object {
+    $response = Read-Host "Delete '$($_.Name)'? [y/N]"
+    if ($response -eq 'y') {
+        Remove-Item $_.FullName -Recurse -Force
+        Write-Host "Deleted '$($_.Name)'"
+    } else {
+        Write-Host "Skipped '$($_.Name)'"
+    }
+}
+
+
+
 
 
 
