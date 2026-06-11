@@ -277,7 +277,7 @@ if (($Env:Path -split ';') -notcontains "$HOME/.local/bin") {
 chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 
 (New-Object -ComObject Wscript.Shell).Popup("This script needs to enable several settings that require elevated privileges.`n`nPlease click 'Yes' on the administrator prompt that is about to appear.", 0x00, "Privilege Escalation Required", 0x40)  ## 0x40 = Information icon
-$proc = Start-Process powershell.exe -Verb RunAs -File "$HOME/chezmoi.tmp/init-0.ps1" -Wait -PassThru
+$proc = Start-Process powershell.exe -ExecutionPolicy Bypass -Verb RunAs -File "$HOME/chezmoi.tmp/init-0.ps1" -Wait -PassThru
 
 ## Variables used in next part of script
 [System.IO.File]::AppendAllLines(".\.env", [string[]]@("export Path=`"$env:Path`""))
