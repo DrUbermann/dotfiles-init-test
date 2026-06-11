@@ -220,16 +220,17 @@ Move-Item {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config"
 ## Use integer value for TLS 1.2 to support .NET 4.0
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]3072
 
+$ownername = 'DrUbermann'
 $reponame = 'shell-common-test'
 {{ if lookPath "git" }}
-git clone --depth 1 https://github.com/DrUbermann/$reponame cmn
+git clone --depth 1 https://github.com/$ownername/$reponame cmn
 Get-ChildItem -Recurse -Force cmn/.git | Remove-Item -Recurse -Force ; Remove-Item -Force cmn/.git
 Compress-Archive -Path cmn/* -DestinationPath repo.zip
 {{ else }}
 #### Simpler version for PowerShell 5+
-# Invoke-WebRequest -Uri "https://api.github.com/repos/DrUbermann/$reponame/zipball/master" -Headers @{ Authorization = "Bearer $GITHUB_PAT" } -OutFile (Join-Path $PWD "repo.zip")
+# Invoke-WebRequest -Uri "https://api.github.com/repos/$ownername/$reponame/zipball/master" -Headers @{ Authorization = "Bearer $GITHUB_PAT" } -OutFile (Join-Path $PWD "repo.zip")
 
-$request = [System.Net.HttpWebRequest]::Create("https://api.github.com/repos/DrUbermann/$reponame/zipball/master")
+$request = [System.Net.HttpWebRequest]::Create("https://api.github.com/repos/$ownername/$reponame/zipball/master")
 $request.Method = "GET"
 $request.Headers.Add("Authorization", "Bearer $GITHUB_PAT")
 $request.UserAgent = "PowerShell"
@@ -242,11 +243,8 @@ $client.Headers.Add("User-Agent", "PowerShell")
 $client.DownloadFile($redirectUrl, (Join-Path $PWD "repo.zip"))
 
 Expand-Archive -Path "repo.zip" -DestinationPath "."
-ls
-echo '###############################################################################'
 #$inner = Get-ChildItem -Directory | Select-Object -First 1
 $inner = Get-ChildItem -Directory | Where-Object { $_.Name -like "*$reponame-*" } | Select-Object -First 1
-echo inner is ($inner | Format-List *)
 Rename-Item $inner.FullName "cmn"
 {{ end }}
 
@@ -256,7 +254,12 @@ New-Item -Path {{ osDir .chezmoi.configFile | quote }} -ItemType Directory -Forc
 if ($PSVersionTable.PSVersion.Major -ge 5 -and 
     (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -ErrorAction SilentlyContinue).AllowDevelopmentWithoutDevLicense -eq 1) {
     ## Use native PowerShell 5+ symbolic link
-    New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force
+    try {
+        New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force
+    } catch [System.UnauthorizedAccessException] {
+        Write-Host "Insufficient privileges, retrying elevated..."
+        Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force" -Wait -WindowStyle Hidden
+    }
 } else {
     ## Create symbolic link as Administrator (works without Developer Mode)
     Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command `"cmd /c mklink {{ .chezmoi.configFile | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}`"" -Wait
