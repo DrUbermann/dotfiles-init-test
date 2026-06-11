@@ -250,20 +250,18 @@ Rename-Item $inner.FullName "cmn"
 
 & ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://get.chezmoi.io/ps1"))) -b "$HOME\.local\bin"
 
-New-Item -Path {{ osDir .chezmoi.configFile | quote }} -ItemType Directory -Force
+New-Item -Path {{ osDir .chezmoi.configFile | quote }} -ItemType Directory -Force | Out-Null
 if ($PSVersionTable.PSVersion.Major -ge 5) {
     ## Use native PowerShell 5+ symbolic link
     try {
         New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force | Out-Null
     } catch [System.UnauthorizedAccessException] {
-        $msg = "This script needs to create a symbolic link.`n`nPlease click 'Yes' on the administrator prompt that is about to appear."
-        [System.Windows.MessageBox]::Show($msg, "Privilege Escalation Required", 'OK', 'Information')
+        (New-Object -ComObject Wscript.Shell).Popup("This script needs to create a symbolic link.`n`nPlease click OK on the administrator prompt that is about to appear.", 0, "Privilege Escalation Required", 0x40)  ## 0x40 = Information icon
         Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force" -Wait -WindowStyle Hidden
     }
 } else {
     ## Create symbolic link as Administrator (works without Developer Mode)
-    $msg = "This script needs to create a symbolic link.`n`nPlease click 'Yes' on the administrator prompt that is about to appear."
-    [System.Windows.MessageBox]::Show($msg, "Privilege Escalation Required", 'OK', 'Information')
+    (New-Object -ComObject Wscript.Shell).Popup("This script needs to create a symbolic link.`n`nPlease click OK on the administrator prompt that is about to appear.", 0, "Privilege Escalation Required", 0x40)  ## 0x40 = Information icon
     $proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command `"cmd /c mklink {{ .chezmoi.configFile | quote }} {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}`"" -Wait -PassThru
     if ($proc.ExitCode -ne 0) {
         ## Fall back to a standard cmd hard link (works without Administrator Access & Developer Mode)
@@ -278,8 +276,7 @@ if (($Env:Path -split ';') -notcontains "$HOME/.local/bin") {
 
 chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 
-$msg = "This script needs to enable several settings that require elevated privileges.`n`nPlease click 'Yes' on the administrator prompt that is about to appear."
-[System.Windows.MessageBox]::Show($msg, "Privilege Escalation Required", 'OK', 'Information')
+(New-Object -ComObject Wscript.Shell).Popup("This script needs to enable several settings that require elevated privileges.`n`nPlease click 'Yes' on the administrator prompt that is about to appear.", 0, "Privilege Escalation Required", 0x40)  ## 0x40 = Information icon
 $proc = Start-Process powershell.exe -Verb RunAs -File "$HOME/chezmoi.tmp/init-0.ps1" -Wait -PassThru
 
 ## Variables used in next part of script
