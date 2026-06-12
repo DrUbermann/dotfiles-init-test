@@ -257,12 +257,12 @@ if ($PSVersionTable.PSVersion.Major -ge 5) {
         New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force | Out-Null
     } catch [System.UnauthorizedAccessException] {
         (New-Object -ComObject Wscript.Shell).Popup("This script needs to create a symbolic link.`n`nPlease click OK on the administrator prompt that is about to appear.", 0x00, "Privilege Escalation Required", 0x40)
-        Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command New-Item -Path '{{ .chezmoi.configFile }}' -ItemType SymbolicLink -Value '{{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" }}' -Force" -Wait -WindowStyle Hidden
+        Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command New-Item -Path '{{ .chezmoi.configFile }}' -ItemType SymbolicLink -Value '{{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" }}' -Force" -WindowStyle Hidden -Wait
     }
 } else {
     ## Create symbolic link as Administrator (works without Developer Mode)
     (New-Object -ComObject Wscript.Shell).Popup("This script needs to create a symbolic link.`n`nPlease click OK on the administrator prompt that is about to appear.", 0x00, "Privilege Escalation Required", 0x40)
-    $proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command `"cmd /c mklink '{{ .chezmoi.configFile }}' '{{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" }}'`"" -Wait -PassThru
+    $proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-Command `"cmd /c mklink '{{ .chezmoi.configFile }}' '{{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" }}'`"" -WindowStyle Hidden -Wait -PassThru
     if ($proc.ExitCode -ne 0) {
         ## Fall back to a standard cmd hard link (works without Administrator Access & Developer Mode)
         Write-Host "Symbolic Link creation failed; falling back to Hard Link."
@@ -277,7 +277,7 @@ if (($Env:Path -split ';') -notcontains "$HOME/.local/bin") {
 chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 
 (New-Object -ComObject Wscript.Shell).Popup("This script needs to enable several settings that require elevated privileges.`n`nPlease click 'Yes' on the administrator prompt that is about to appear.", 0x00, "Privilege Escalation Required", 0x40)  ## 0x40 = Information icon
-$proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-File $HOME/chezmoi.tmp/init-0.ps1" -Wait -PassThru
+$proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-File $HOME/chezmoi.tmp/init-0.ps1" -WindowStyle Hidden -Wait -PassThru
 
 ## Variables used in next part of script
 [System.IO.File]::AppendAllLines(".\.env", [string[]]@("export Path=`"$env:Path`""))
