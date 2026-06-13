@@ -28,4 +28,3 @@ $client.Headers.Add('Authorization', "Basic $creds")
 $script = $client.DownloadString($url)
 
 Invoke-Expression $script
-Write-Output "In bootstrap-test.ps1 after running script" ###############################################
