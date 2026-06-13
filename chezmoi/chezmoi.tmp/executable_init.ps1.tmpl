@@ -102,7 +102,7 @@ if [ "$(id -u)" -ne 0 ] && ! command -v sudo >/dev/null 2>&1 && ! command -v doa
     fi
 fi
 
-x=0 && {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/grant_privileged_access.sh || x=$?
+x=0 && {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" "grant_privileged_access.sh" | quote }} || x=$?
 
 ## Variables used in next part of script
 printf '%s="%s"\n' "export PATH" "$PATH" >> ./.env
@@ -277,7 +277,8 @@ if (($Env:Path -split ';') -notcontains "$HOME/.local/bin") {
 chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 
 (New-Object -ComObject Wscript.Shell).Popup("This script needs to enable several settings that require elevated privileges.`n`nPlease click 'Yes' on the administrator prompt that is about to appear.", 0x00, "Privilege Escalation Required", 0x40)  ## 0x40 = Information icon
-$proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-File $HOME/chezmoi.tmp/init-0.ps1" -WindowStyle Hidden -Wait -PassThru
+#$proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-File $HOME/chezmoi.tmp/init-0.ps1" -WindowStyle Hidden -Wait -PassThru
+$proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-File '{{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" "grant_privileged_access.ps1" }}'" -WindowStyle Hidden -Wait -PassThru
 
 ## Variables used in next part of script
 [System.IO.File]::AppendAllLines(".\.env", [string[]]@("export Path=`"$env:Path`""))
@@ -290,7 +291,7 @@ Get-ChildItem Env: | Where-Object { $_.Name -match '^LGR_' } | ForEach-Object {
 }
 
 if ($proc.ExitCode -eq 3) {
-    Write-Output "Must reboot after administrative settings set.  Continue this script with:", 'powershell.exe -Verb RunAs -File "$HOME/chezmoi.tmp/init-0.ps1"'
+    Write-Output "Must reboot after administrative settings set.  Continue this script with:", 'powershell.exe -Verb RunAs -File "$HOME/chezmoi.tmp/init-1.ps1"'
 } elseif ($proc.ExitCode -ne 0) {
     exit $proc.ExitCode
 }
