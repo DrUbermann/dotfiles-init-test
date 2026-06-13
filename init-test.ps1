@@ -17,3 +17,4 @@ iex "&{$(irm 'https://get.chezmoi.io/ps1')} init --apply 'https://github.com/DrU
 #$Env:LGR_LVL_CNSL = 0
 ## Start a new process so Developer Mode registry change will be read
 powershell.exe -ExecutionPolicy Bypass -File "$HOME/chezmoi.tmp/init.ps1"
+Write-Output "In init-test.ps1 after running init.ps1" ###############################################

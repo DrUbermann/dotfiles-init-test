@@ -26,16 +26,16 @@ chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)
 #exec rm -vi ./* ./.env
 #exec rm -rf ./* ./.env
 #find . -mindepth 1 -print -delete
-for _f in ./*; do
-    printf "Delete '%s'? [y/N]: " "$_f" > /dev/tty
-    read -r response < /dev/tty
-    if [ "$response" = "y" ]; then
-        rm -rf "$_f"
-        printf "Deleted '%s'\n" "$_f"
-    else
-        printf "Skipped '%s'\n" "$_f"
-    fi
-done
+# for _f in ./*; do
+#     printf "Delete '%s'? [y/N]: " "$_f" > /dev/tty
+#     read -r response < /dev/tty
+#     if [ "$response" = "y" ]; then
+#         rm -rf "$_f"
+#         printf "Deleted '%s'\n" "$_f"
+#     else
+#         printf "Skipped '%s'\n" "$_f"
+#     fi
+# done
 
 
 {{- else -}}
