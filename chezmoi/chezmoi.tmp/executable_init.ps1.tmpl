@@ -7,6 +7,10 @@ FPATH_SCRIPT="$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")"
 #cd "$(dirname "$0")"
 cd "$(cd "$(dirname "$0")" && pwd)"
 
+$REPO_OWNER='DrUbermann'
+$REPO_CMN='shell-common-test'
+$REPO_DOTFILES='dotfiles-test-v01'
+
 . ./.env
 
 LGR_LVL_CNSL=${LGR_LVL_CNSL:-}
@@ -62,7 +66,7 @@ export GITHUB_PAT
     init \
     --config-path={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} \
     --depth={{ if .ephem }}1{{ else }}0{{ end }} \
-    https://{{ if not (lookPath "git") }}"$GITHUB_PAT@"{{ end }}github.com/DrUbermann/dotfiles-test-v01.git
+    https://{{ if not (lookPath "git") }}"$GITHUB_PAT@"{{ end }}"github.com/$REPO_OWNER/$REPO_DOTFILES.git"
     ## Note that $GITHUB_PAT will be stored in plain text in {.chezmoi.workingTree}/.git/config
     ##   if GITHUB_PAT is defined and git is not installed
 
@@ -73,13 +77,14 @@ export GITHUB_PAT
 mv {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config" | quote }} "./gitconfig"
 sed 's|^\([[:space:]]*url[[:space:]]*=[[:space:]]*https://\)[A-Za-z0-9_-]*@|\1|' "./gitconfig" > {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config" | quote }}
 
+
 {{ if lookPath "git" }}
-git clone --depth 1 https://github.com/DrUbermann/shell-common-test cmn
+git clone --depth 1 "https://github.com/$REPO_OWNER/$REPO_CMN" cmn
 rm -rf cmn/.git
 tar -czf repo.tar.gz -C cmn/ .
 {{ else }}
 {{ if (lookPath "curl") }}curl -fsLS -o{{ else if (lookPath "wget") }}wget -q -O{{ else if (and (lookPath "openssl") (exec "openssl" "s_client" "-connect" "example.com:443" "-servername" "example.com")) }}./ssl_get -o{{ else }}echo curl and wget and ssl not available, exiting; exit 127 #{{ end }} repo.tar.gz \
-    --header "Authorization: Bearer $GITHUB_PAT" --header "Accept: application/vnd.github+json" https://api.github.com/repos/DrUbermann/shell-common-test/tarball/master
+    --header "Authorization: Bearer $GITHUB_PAT" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO_OWNER/$REPO_CMN/tarball/master"
 tar -xzf repo.tar.gz && mv $(tar -tzf repo.tar.gz | head -1 | cut -f1 -d'/') cmn
 {{ end }}
 
@@ -143,6 +148,10 @@ Set-StrictMode -Version Latest
 #$FPATH_SCRIPT = $PSCommandPath
 Set-Location $PSScriptRoot
 
+$REPO_OWNER = 'DrUbermann'
+$REPO_CMN = 'shell-common-test'
+$REPO_DOTFILES = 'dotfiles-test-v01'
+
 ## Equivalent of . ./.env
 $EnvFile = ".env"
 if (Test-Path $EnvFile) {
@@ -204,7 +213,7 @@ $a = @(
     'init',
     '--config-path={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }}',
     '--depth={{ if .ephem }}1{{ else }}0{{ end }}',
-    "https://{{ if not (lookPath "git") }}`"$GITHUB_PAT@`"{{ end }}github.com/DrUbermann/dotfiles-test-v01.git"
+    "https://{{ if not (lookPath "git") }}`"$GITHUB_PAT@`"{{ end }}github.com/$REPO_OWNER/$REPO_DOTFILES.git"
     ## Note that $GITHUB_PAT will be stored in plain text in {.chezmoi.workingTree}/.git/config
     ##   if GITHUB_PAT is defined and git is not installed
 )
@@ -220,17 +229,15 @@ Move-Item {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config"
 ## Use integer value for TLS 1.2 to support .NET 4.0
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]3072
 
-$ownername = 'DrUbermann'
-$reponame = 'shell-common-test'
 {{ if lookPath "git" }}
-git clone --depth 1 https://github.com/$ownername/$reponame cmn
+git clone --depth 1 "https://github.com/$REPO_OWNER/$REPO_CMN" cmn
 Get-ChildItem -Recurse -Force cmn/.git | Remove-Item -Recurse -Force ; Remove-Item -Force cmn/.git
 Compress-Archive -Path cmn/* -DestinationPath repo.zip
 {{ else }}
 #### Simpler version for PowerShell 5+
-# Invoke-WebRequest -Uri "https://api.github.com/repos/$ownername/$reponame/zipball/master" -Headers @{ Authorization = "Bearer $GITHUB_PAT" } -OutFile (Join-Path $PWD "repo.zip")
+# Invoke-WebRequest -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_CMN/zipball/master" -Headers @{ Authorization = "Bearer $GITHUB_PAT" } -OutFile (Join-Path $PWD "repo.zip")
 
-$request = [System.Net.HttpWebRequest]::Create("https://api.github.com/repos/$ownername/$reponame/zipball/master")
+$request = [System.Net.HttpWebRequest]::Create("https://api.github.com/repos/$REPO_OWNER/$REPO_CMN/zipball/master")
 $request.Method = "GET"
 $request.Headers.Add("Authorization", "Bearer $GITHUB_PAT")
 $request.UserAgent = "PowerShell"

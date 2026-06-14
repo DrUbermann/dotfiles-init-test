@@ -18,7 +18,7 @@ chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)
 #sudo apt -y install git
 
 ## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
-#chezmoi $LGR_LVL_CHEZMOI git remote set-url origin https://github.com/DrUbermann/dotfiles-test-v01.git
+#chezmoi $LGR_LVL_CHEZMOI git remote set-url origin "https://github.com/$REPO_OWNER/$REPO_DOTFILES.git"
 
 #chezmoi $LGR_LVL_CHEZMOI update
 
@@ -85,7 +85,7 @@ chezmoi $LGR_LVL_CHEZMOI apply --include scripts
 chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
 
 ## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
-#chezmoi $LGR_LVL_CHEZMOI git remote set-url origin https://github.com/DrUbermann/dotfiles-test-v01.git
+#chezmoi $LGR_LVL_CHEZMOI git remote set-url origin "https://github.com/$REPO_OWNER/$REPO_DOTFILES.git"
 
 #chezmoi $LGR_LVL_CHEZMOI update
 

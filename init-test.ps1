@@ -13,7 +13,8 @@ Set-StrictMode -Version Latest
 
 Set-Location ~
 
-iex "&{$(irm 'https://get.chezmoi.io/ps1')} init --apply 'https://github.com/DrUbermann/dotfiles-init-test.git'"
+#Invoke-Expression "&{$(Invoke-RestMethod 'https://get.chezmoi.io/ps1')} init --apply 'https://github.com/DrUbermann/dotfiles-init-test.git'"
+& ([scriptblock]::Create((New-Object Net.WebClient).DownloadString('https://get.chezmoi.io/ps1'))) init --apply 'https://github.com/DrUbermann/dotfiles-init-test.git'
 #$Env:LGR_LVL_CNSL = 0
 ## Start a new process so Developer Mode registry change will be read
 powershell.exe -ExecutionPolicy Bypass -File "$HOME/chezmoi.tmp/init.ps1"
