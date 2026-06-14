@@ -257,7 +257,7 @@ if ($PSVersionTable.PSVersion.Major -ge 5) {
         New-Item -Path {{ .chezmoi.configFile | quote }} -ItemType SymbolicLink -Value {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} -Force | Out-Null
     } catch [System.UnauthorizedAccessException] {
         [void](New-Object -ComObject Wscript.Shell).Popup("This script needs to create a symbolic link.`n`nPlease click OK on the administrator prompt that is about to appear.", 0x00, "Privilege Escalation Required", 0x40)
-        Start-Process powershell.exe -Verb RunAs -ArgumentList @("-NoProfile", "-NonInteractive", "-Command", "New-Item -Path '{{ .chezmoi.configFile }}' -ItemType SymbolicLink -Value '{{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" }} -Force") -WindowStyle Hidden -Wait
+        Start-Process powershell.exe -Verb RunAs -ArgumentList @("-NoProfile", "-NonInteractive", "-Command", "New-Item -Path '{{ .chezmoi.configFile }}' -ItemType SymbolicLink -Value '{{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" }}' -Force") -WindowStyle Hidden -Wait
     }
 } else {
     ## Create symbolic link as Administrator (works without Developer Mode)
@@ -292,7 +292,7 @@ Get-ChildItem Env: | Where-Object { $_.Name -match '^LGR_' } | ForEach-Object {
 }
 
 if ($proc.ExitCode -eq 3) {
-    Write-Output "Must reboot after administrative settings set.  Continue this script with:", 'powershell.exe -Verb RunAs -File "$HOME/chezmoi.tmp/init-1.ps1"'
+    Write-Output "Must re-login after administrative settings set.  Continue this script with:", 'powershell.exe -Verb RunAs -File "$HOME/chezmoi.tmp/init-1.ps1"'
 } elseif ($proc.ExitCode -ne 0) {
     exit $proc.ExitCode
 }
