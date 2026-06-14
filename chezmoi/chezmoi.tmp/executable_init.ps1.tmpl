@@ -278,8 +278,7 @@ chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 
 [void](New-Object -ComObject Wscript.Shell).Popup("This script needs to enable several settings that require elevated privileges.`n`nPlease click 'Yes' on the administrator prompt that is about to appear.", 0x00, "Privilege Escalation Required", 0x40)  ## 0x40 = Information icon
 #$proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-File $HOME/chezmoi.tmp/init-0.ps1" -WindowStyle Hidden -Wait -PassThru
-$proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-File '{{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" "grant_privileged_access.ps1" }}' *> C:\temp\output.log" -Wait -PassThru
-Write-Output "In init.ps1 after running grant_privileged_access.ps1, proc = $($proc.ExitCode)" ###############################################
+$proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-File '{{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" "grant_privileged_access.ps1" }}'" -WindowStyle Hidden -Wait -PassThru
 
 ## Variables used in next part of script
 [System.IO.File]::AppendAllLines(".\.env", [string[]]@("export Path=`"$env:Path`""))
