@@ -102,62 +102,6 @@ Get-ChildItem | ForEach-Object {
 
 
 
-
-
-
-
-
-## Enable Developer Mode
-$regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-if (!(Test-Path $regPath)) {
-    New-Item -Path $regPath -Force
-}
-Set-ItemProperty -Path $regPath -Name "AllowDevelopmentWithoutDevLicense" -Value 1 -Type DWord
-Set-ItemProperty -Path $regPath -Name "AllowAllTrustedApps" -Value 1 -Type DWord
-
-
-
-## Enable Symbolic Link Creation
-
-
-
-
-
-if (!(whoami /priv | Select-String "SeCreateSymbolicLinkPrivilege")) {
-
-
-
-
-
-
-# Get the SID for the current user
-$sid = (New-Object System.Security.Principal.NTAccount($env:USERNAME)).Translate([System.Security.Principal.SecurityIdentifier]).Value
-
-$tmpCfg = "$env:TEMP\secpol.cfg"
-$tmpDb  = "$env:TEMP\secpol.db"
-
-# Export current policy
-secedit /export /cfg $tmpCfg /quiet
-
-# Add the user to SeCreateSymbolicLinkPrivilege
-
-$content = Get-Content $tmpCfg
-if ($content -match "SeCreateSymbolicLinkPrivilege") {
-    $content = $content -replace "(SeCreateSymbolicLinkPrivilege\s*=\s*.*)", "`$1,*$sid"
-} else {
-    $content += "`nSeCreateSymbolicLinkPrivilege = *$sid"
-}
-Set-Content $tmpCfg $content
-
-# Import modified policy
-secedit /configure /db $tmpDb /cfg $tmpCfg /quiet
-
-# Cleanup
-Remove-Item $tmpCfg, $tmpDb -Force -ErrorAction SilentlyContinue
-
-
-
-
 {{- end -}}
 
 {{- "" }}
