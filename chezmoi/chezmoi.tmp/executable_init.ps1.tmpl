@@ -291,13 +291,14 @@ Get-ChildItem Env: | Where-Object { $_.Name -match '^LGR_' } | ForEach-Object {
 }
 
 if ($proc.ExitCode -eq 3) {
-    Write-Output "Must re-login after administrative settings set.  Continue this script with:", "powershell.exe -Verb RunAs -File $HOME\chezmoi.tmp\init-1.ps1"
+    Write-Output "Must re-login after administrative settings set.  Continue this script with:", "& ~/chezmoi.tmp/init-1.ps1"
+    exit 0
 } elseif ($proc.ExitCode -ne 0) {
     exit $proc.ExitCode
 }
 
 ## Run next part of init script
-powershell.exe -Verb RunAs -File "$HOME\chezmoi.tmp\init-1.ps1"
+powershell.exe -ExecutionPolicy Bypass -File "$HOME\chezmoi.tmp\init-1.ps1"
 
 exit 0
 
