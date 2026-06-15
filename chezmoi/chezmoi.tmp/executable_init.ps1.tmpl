@@ -110,10 +110,13 @@ fi
 x=0 && {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" "grant_privileged_access.sh" | quote }} || x=$?
 
 ## Variables used in next part of script
-printf '%s="%s"\n' "export PATH" "$PATH" >> ./.env
-printf '%s="%s"\n' "export GIT_ASKPASS" "$GIT_ASKPASS" >> ./.env
-printf '%s="%s"\n' "export GITHUB_PAT" "$GITHUB_PAT" >> ./.env
-#printf '%s="%s"\n' "LGR_LVL_CHEZMOI" "$LGR_LVL_CHEZMOI" >> ./.env
+printf "export PATH='%s'\n" "$(printf '%s' "$PATH" | sed "s/'/'\\\\''/g")" >> ./.env
+printf "export GIT_ASKPASS='%s'\n" "$(printf '%s' "$GIT_ASKPASS" | sed "s/'/'\\\\''/g")" >> ./.env
+printf "export GITHUB_PAT='%s'\n" "$(printf '%s' "$GITHUB_PAT" | sed "s/'/'\\\\''/g")" >> ./.env
+printf "REPO_OWNER='%s'\n" "$(printf '%s' "$REPO_OWNER" | sed "s/'/'\\\\''/g")" >> ./.env
+printf "REPO_CMN='%s'\n" "$(printf '%s' "$REPO_CMN" | sed "s/'/'\\\\''/g")" >> ./.env
+printf "REPO_DOTFILES='%s'\n" "$(printf '%s' "$REPO_DOTFILES" | sed "s/'/'\\\\''/g")" >> ./.env
+printf "LGR_LVL_CHEZMOI='%s'\n" "$(printf '%s' "$LGR_LVL_CHEZMOI" | sed "s/'/'\\\\''/g")" >> ./.env
 env | grep '^LGR_' | sed 's/'"'"'/'"'"'\\'"'"''"'"'/g; s/^\([^=]*\)=\(.*\)$/\1='"'"'\2'"'"'/' >> ./.env  ## s/'/'\\''/g; s/^\([^=]*\)=\(.*\)$/\1='\2'/
 
 _fpath_script_1="$(cd "$(dirname "$FPATH_SCRIPT")" && pwd -P)/$(basename "${FPATH_SCRIPT%.*}-1.${FPATH_SCRIPT##*.}")"
@@ -156,22 +159,17 @@ $REPO_DOTFILES = 'dotfiles-test-v01'
 $EnvFile = ".env"
 if (Test-Path $EnvFile) {
     Get-Content $EnvFile | ForEach-Object {
-        ## Clean up whitespace and skip empty lines or comments
         $line = $_.Trim()
-        if ([string]::IsNullOrEmpty($line) -or $line.StartsWith("#")) { return }
-        ## Case 1: Exported variables (e.g., export BAR=bar)
+        if (-not $line -or $line.StartsWith("#")) { return }
         if ($line -match '^export\s+(?<key>[^=]+)=(?<value>.*)$') {
-            $key = $Matches['key'].Trim()
-            $value = $Matches['value'].Trim("'`"" )  ## Strips outer quotes if present
-            ## Create BOTH local variable and environment variable
+            $key   = $Matches['key'].Trim()
+            $value = $Matches['value'].Trim("'`"") -replace "'\\''", "'"
             Set-Item "Env:$key" $value
             Set-Variable -Name $key -Value $value -Force
         }
-        ## Case 2: Regular variables (e.g., FOO=foo)
         elseif ($line -match '^(?<key>[^=]+)=(?<value>.*)$') {
-            $key = $Matches['key'].Trim()
-            $value = $Matches['value'].Trim("'`"" )  ## Strips outer quotes if present
-            ## Create local variable ONLY
+            $key   = $Matches['key'].Trim()
+            $value = $Matches['value'].Trim("'`"") -replace "'\\''", "'"
             Set-Variable -Name $key -Value $value -Force
         }
     }
@@ -288,14 +286,29 @@ chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 $proc = Start-Process powershell.exe -Verb RunAs -ArgumentList @("-ExecutionPolicy Bypass", "-NoProfile", "-NonInteractive", "-File", "{{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" "grant_privileged_access.ps1" }}") -WindowStyle Hidden -Wait -PassThru
 
 ## Variables used in next part of script
-[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("export Path=`"$Env:Path`""))
-[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("export GIT_ASKPASS=`"$Env:GIT_ASKPASS`""))
-[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("export GITHUB_PAT=`"$Env:GITHUB_PAT`""))
-[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("LGR_LVL_CHEZMOI=`"$LGR_LVL_CHEZMOI`""))
-Get-ChildItem Env: | Where-Object { $_.Name -match '^LGR_' } | ForEach-Object {
-    $escaped = $_.Value -replace "'", "'\''"
-    [System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]"$($_.Name)='$escaped'")
-}
+[System.IO.File]::AppendAllText((Join-Path $PWD.Path ".env"), "export Path='$($Env:Path -replace "'", "'\''")'" + "`n")
+[System.IO.File]::AppendAllText((Join-Path $PWD.Path ".env"), "export GIT_ASKPASS='$($Env:GIT_ASKPASS -replace "'", "'\''")'" + "`n")
+[System.IO.File]::AppendAllText((Join-Path $PWD.Path ".env"), "export GITHUB_PAT='$($Env:GITHUB_PAT -replace "'", "'\''")'" + "`n")
+[System.IO.File]::AppendAllText((Join-Path $PWD.Path ".env"), "REPO_OWNER='$($REPO_OWNER -replace "'", "'\''")'" + "`n")
+[System.IO.File]::AppendAllText((Join-Path $PWD.Path ".env"), "REPO_CMN='$($REPO_CMN -replace "'", "'\''")'" + "`n")
+[System.IO.File]::AppendAllText((Join-Path $PWD.Path ".env"), "REPO_DOTFILES='$($REPO_DOTFILES -replace "'", "'\''")'" + "`n")
+[System.IO.File]::AppendAllText((Join-Path $PWD.Path ".env"), "LGR_LVL_CHEZMOI='$($LGR_LVL_CHEZMOI -replace "'", "'\''")'" + "`n")
+$envNames = (Get-ChildItem Env:).Name
+$lines  = Get-ChildItem Env: | Where-Object { $_.Name -match '^LGR_' } | ForEach-Object { "export $($_.Name)='$($_.Value -replace "'", "'\''")'" }
+$lines += Get-ChildItem Variable: | Where-Object { $_.Name -match '^LGR_' -and $envNames -notcontains $_.Name } | ForEach-Object { "$($_.Name)='$([string]$_.Value -replace "'", "'\''")'" }
+[System.IO.File]::AppendAllText((Join-Path $PWD.Path ".env"), ($lines -join "`n") + "`n")
+
+#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("export Path='$Env:Path'"))
+#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("export GIT_ASKPASS='$Env:GIT_ASKPASS'"))
+#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("export GITHUB_PAT='$Env:GITHUB_PAT'"))
+#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("REPO_OWNER='$REPO_OWNER'"))
+#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("REPO_CMN='$REPO_CMN'"))
+#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("REPO_DOTFILES='$REPO_DOTFILES'"))
+#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("LGR_LVL_CHEZMOI='$LGR_LVL_CHEZMOI'"))
+#Get-ChildItem Env: | Where-Object { $_.Name -match '^LGR_' } | ForEach-Object {
+#    $escaped = $_.Value -replace "'", "'\''"
+#    [System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]"$($_.Name)='$escaped'")
+#}
 
 $PSCommandPath_1 = $PSCommandPath -replace '\.ps1$', '-1.ps1'
 if ($proc.ExitCode -eq 3) {
