@@ -47,8 +47,10 @@ foreach (`$path in `$paths) {
     Write-Host "completed $tmpScript"
     Remove-Item $tmpScript -ErrorAction SilentlyContinue
 
-    Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $MyInvocation.MyCommand.Path
-    Write-Host "completed $MyInvocation.MyCommand.Path"
+    $script = $MyInvocation.MyCommand.Path
+    Write-Host "script = $script"
+    Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $script
+    Write-Host "completed $script"
     exit
 }
 
