@@ -23,8 +23,8 @@ if ([System.Environment]::OSVersion.Version.Major -ge 10 -and $Host.Version.Majo
 
 $regPath = "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"
 $netKey = Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue
-if ($null -eq $netKey -or $netKey.Release -lt 533320) {
-    Write-Error "Upgrade to .NET 4.8.1 or later."
+if ($null -eq $netKey -or $netKey.Release -lt 528040) {
+    Write-Error "Upgrade to .NET 4.8 or later."
     exit 1
 }
 
