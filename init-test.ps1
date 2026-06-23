@@ -50,7 +50,7 @@ foreach (`$path in `$paths) {
 )).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 Write-Host "Caller is admin: $callerIsAdmin"
     Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $tmpScript #-WindowStyle Hidden
-    $proc = Start-Process powershell.exe -Verb RunAs -PassThru -ArgumentList "-NoExit", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $tmpScript -WindowStyle Hidden
+    $proc = Start-Process powershell.exe -Verb RunAs -PassThru -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $tmpScript -WindowStyle Hidden
     $proc.WaitForExit()
     Write-Host "completed $tmpScript"
     Remove-Item $tmpScript -ErrorAction SilentlyContinue
