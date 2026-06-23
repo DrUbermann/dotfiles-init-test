@@ -44,7 +44,7 @@ foreach (`$path in `$paths) {
 
     Write-Host "Interactive: $([Environment]::UserInteractive)"
     Write-Host "CWD: $(Get-Location)"
-    Start-Process powershell.exe -Wait -WorkingDirectory -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $tmpScript #-WindowStyle Hidden
+    Start-Process powershell.exe -Verb RunAs -Wait -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $tmpScript #-WindowStyle Hidden
     Remove-Item $tmpScript -ErrorAction SilentlyContinue
 
     Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $MyInvocation.MyCommand.Path
