@@ -45,6 +45,10 @@ foreach (`$path in `$paths) {
     Write-Host "Interactive: $([Environment]::UserInteractive)"
     Write-Host "CWD: $(Get-Location)"
     Write-Host "tmpScript = $tmpScript"
+    $callerIsAdmin = (New-Object Security.Principal.WindowsPrincipal(
+    [Security.Principal.WindowsIdentity]::GetCurrent()
+)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+Write-Host "Caller is admin: $callerIsAdmin"
     Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $tmpScript #-WindowStyle Hidden
     Start-Sleep -Seconds 2
     Write-Host "completed $tmpScript"
