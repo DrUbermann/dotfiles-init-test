@@ -49,7 +49,8 @@ foreach (`$path in `$paths) {
 
     $script = $MyInvocation.MyCommand.Path
     Write-Host "script = $script"
-    Start-Process powershell.exe -ArgumentList "-NoExit", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $script
+    $proc = Start-Process powershell.exe -PassThru -ArgumentList "-NoExit", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $script
+    Start-Sleep -Seconds 10
     Write-Host "completed $script"
     exit
 }
