@@ -28,7 +28,7 @@ if ($null -eq $netKey -or $netKey.Release -lt 528040) {
     exit 1
 }
 
-Write-Host "creds = $creds"
+#Write-Host "creds = $creds"
 Write-Host "Env:creds = $Env:creds"
 
 if ($PSVersionTable.CLRVersion.Major -lt 4) {
