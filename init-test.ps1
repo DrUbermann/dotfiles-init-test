@@ -42,11 +42,11 @@ foreach (`$path in `$paths) {
 }
 "@ | Out-File -FilePath $tmpScript -Encoding ASCII
 
-    Write-Host "Interactive: $([Environment]::UserInteractive)"
-    Write-Host "CWD: $(Get-Location)"
-    Write-Host "tmpScript = $tmpScript"
-    Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:\Users\Alexander\Documents\ApplyBindings_Worker.ps1" #-WindowStyle Hidden
-    #Remove-Item $tmpScript -ErrorAction SilentlyContinue
+    #Write-Host "Interactive: $([Environment]::UserInteractive)"
+    #Write-Host "CWD: $(Get-Location)"
+    #Write-Host "tmpScript = $tmpScript"
+    Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $tmpScript #-WindowStyle Hidden
+    Remove-Item $tmpScript -ErrorAction SilentlyContinue
 
     Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $MyInvocation.MyCommand.Path
     exit
@@ -54,6 +54,7 @@ foreach (`$path in `$paths) {
 
 $client = New-Object System.Net.WebClient
 $client.Headers.Add('Authorization', "Basic $creds")
+Write-Host 'here'
 Invoke-Expression $client.DownloadString('https://dotfiles-init-test.drubermann.workers.dev/.excu/chezmoi-install-legacy.ps1')
 
 }
