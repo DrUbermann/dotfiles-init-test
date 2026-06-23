@@ -45,7 +45,7 @@ foreach (`$path in `$paths) {
     Write-Host "Interactive: $([Environment]::UserInteractive)"
     Write-Host "CWD: $(Get-Location)"
     Write-Host "tmpScript = $tmpScript"
-    Start-Process powershell.exe -Verb RunAs -Wait -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:\Users\Alexander\Documents\test.ps1" #-WindowStyle Hidden
+    Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:\Users\Alexander\Documents\ApplyBindings_Worker.ps1" #-WindowStyle Hidden
     #Remove-Item $tmpScript -ErrorAction SilentlyContinue
 
     Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $MyInvocation.MyCommand.Path
