@@ -21,10 +21,11 @@ $creds = [Convert]::ToBase64String(
 $url = 'https://dotfiles-init-test.drubermann.workers.dev/init-test.ps1'
 
 #### Simpler version for PowerShell 5+
-# $script = (Invoke-WebRequest -Uri $url -Headers @{ Authorization = "Basic $creds" }).Content
+#Invoke-Expression (Invoke-WebRequest -Uri $url -Headers @{ Authorization = "Basic $creds" }).Content
 
+$tmpScript = Join-Path $env:TEMP "init.ps1"
 $client = New-Object System.Net.WebClient
 $client.Headers.Add('Authorization', "Basic $creds")
-$script = $client.DownloadString($url)
-
-Invoke-Expression $script
+$client.DownloadFile($url, $tmpScript)
+& $tmpScript
+Remove-Item $tmpScript -ErrorAction SilentlyContinue
