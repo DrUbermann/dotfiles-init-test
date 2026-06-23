@@ -42,13 +42,15 @@ foreach (`$path in `$paths) {
 }
 "@ | Out-File -FilePath $tmpScript -Encoding ASCII
 
-    #Write-Host "Interactive: $([Environment]::UserInteractive)"
-    #Write-Host "CWD: $(Get-Location)"
-    #Write-Host "tmpScript = $tmpScript"
+    Write-Host "Interactive: $([Environment]::UserInteractive)"
+    Write-Host "CWD: $(Get-Location)"
+    Write-Host "tmpScript = $tmpScript"
     Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $tmpScript #-WindowStyle Hidden
     Remove-Item $tmpScript -ErrorAction SilentlyContinue
 
+    Write-Host 'before'
     Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $MyInvocation.MyCommand.Path
+    Write-Host 'after'
     exit
 }
 
