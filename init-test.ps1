@@ -46,7 +46,7 @@ foreach (`$path in `$paths) {
     Write-Host "CWD: $(Get-Location)"
     Write-Host "tmpScript = $tmpScript"
     Start-Process powershell.exe -Wait -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:\Users\Alexander\Documents\test.ps1" #-WindowStyle Hidden
-    Remove-Item $tmpScript -ErrorAction SilentlyContinue
+    #Remove-Item $tmpScript -ErrorAction SilentlyContinue
 
     Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $MyInvocation.MyCommand.Path
     exit
