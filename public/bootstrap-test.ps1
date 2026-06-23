@@ -7,7 +7,7 @@ Set-StrictMode -Version Latest
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
 
 ## Use integer value for TLS 1.2 to support .NET 4.0
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]3072
+#[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]3072
 
 $securePassword = Read-Host -Prompt 'Password' -AsSecureString
 $password = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
