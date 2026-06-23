@@ -49,15 +49,14 @@ foreach (`$path in `$paths) {
 
     $script = $MyInvocation.MyCommand.Path
     Write-Host "script = $script"
-    $proc = Start-Process powershell.exe -PassThru -ArgumentList "-NoExit", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $script
-    Start-Sleep -Seconds 10
+    Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $script
     Write-Host "completed $script"
     exit
 }
 
 Write-Host 'after if ($PSVersionTable.CLRVersion.Major -lt 4)'
 $client = New-Object System.Net.WebClient
-$client.Headers.Add('Authorization', "Basic $creds")
+$client.Headers.Add('Authorization', "Basic $Env:creds")
 Invoke-Expression $client.DownloadString('https://dotfiles-init-test.drubermann.workers.dev/.excu/chezmoi-install-legacy.ps1')
 
 }

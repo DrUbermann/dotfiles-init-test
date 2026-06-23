@@ -26,5 +26,6 @@ $tmpScript = Join-Path $env:TEMP "init.ps1"
 $client = New-Object System.Net.WebClient
 $client.Headers.Add('Authorization', "Basic $creds")
 $client.DownloadFile($url, $tmpScript)
+[Environment]::SetEnvironmentVariable("creds", $creds, "Process")
 & $tmpScript
 Remove-Item $tmpScript -ErrorAction SilentlyContinue
