@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 if ((New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Warning "Runnig as Administrator is not required, exiting."
+    Write-Warning "Running as Administrator is not required, exiting."
     exit 1
 }
 
@@ -42,31 +42,23 @@ foreach (`$path in `$paths) {
 }
 "@ | Out-File -FilePath $tmpScript -Encoding ASCII
 
-    Write-Host "Interactive: $([Environment]::UserInteractive)"
-    Write-Host "CWD: $(Get-Location)"
-    Write-Host "tmpScript = $tmpScript"
-    $callerIsAdmin = (New-Object Security.Principal.WindowsPrincipal(
-    [Security.Principal.WindowsIdentity]::GetCurrent()
-)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-Write-Host "Caller is admin: $callerIsAdmin"
-    #Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $tmpScript #-WindowStyle Hidden
     $proc = Start-Process powershell.exe -Verb RunAs -PassThru -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $tmpScript -WindowStyle Hidden
     $proc.WaitForExit()
     Write-Host "completed $tmpScript"
     Remove-Item $tmpScript -ErrorAction SilentlyContinue
 
-    Write-Host 'before'
     Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $MyInvocation.MyCommand.Path
-    Write-Host 'after'
+    Write-Host "completed $MyInvocation.MyCommand.Path"
     exit
 }
 
+Write-Host 'after if ($PSVersionTable.CLRVersion.Major -lt 4)'
 $client = New-Object System.Net.WebClient
 $client.Headers.Add('Authorization', "Basic $creds")
-Write-Host 'here'
 Invoke-Expression $client.DownloadString('https://dotfiles-init-test.drubermann.workers.dev/.excu/chezmoi-install-legacy.ps1')
 
 }
 
+Write-Host 'after if ([System.Environment]::'
 #$Env:LGR_LVL_CNSL = 0
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HOME/chezmoi.tmp/init.ps1"
