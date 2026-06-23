@@ -28,6 +28,9 @@ if ($null -eq $netKey -or $netKey.Release -lt 528040) {
     exit 1
 }
 
+Write-Host "creds = $creds"
+Write-Host "Env:creds = $Env:creds"
+
 if ($PSVersionTable.CLRVersion.Major -lt 4) {
     [void](New-Object -ComObject Wscript.Shell).Popup("PowerShell is bound to CLR $($PSVersionTable.CLRVersion) (.NET 2.0/3.5), even if .NET 4.8 is installed on this machine.  Fixing this requires installing config files for powershell and re-launching.`n`nPlease click OK on the administrator prompt that is about to appear.", 0x00, "Privilege Escalation Required", 0x40)
 
@@ -49,12 +52,14 @@ foreach (`$path in `$paths) {
 
     $script = $MyInvocation.MyCommand.Path
     Write-Host "script = $script"
-    Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $script
+    $proc = Start-Process powershell.exe -PassThru -ArgumentList "-NoExit", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $script
+    Start-Sleep -Seconds 10
     Write-Host "completed $script"
     exit
 }
 
 Write-Host 'after if ($PSVersionTable.CLRVersion.Major -lt 4)'
+Write-Host "using creds = $Env:creds"
 $client = New-Object System.Net.WebClient
 $client.Headers.Add('Authorization', "Basic $Env:creds")
 Invoke-Expression $client.DownloadString('https://dotfiles-init-test.drubermann.workers.dev/.excu/chezmoi-install-legacy.ps1')
