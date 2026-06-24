@@ -143,7 +143,7 @@
 fcn() {
     while [ $# -gt 0 ]; do
         case "$1" in
-            *)
+            (*)
                 _x="$1"; shift ;;
         esac
     done
