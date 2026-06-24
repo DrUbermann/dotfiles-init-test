@@ -139,7 +139,7 @@ elif command -v openssl >/dev/null 2>&1; then
 # EOF
 #     )
 
-    SSL_GET_DEF=$(cat << 'EOF'
+    #SSL_GET_DEF=$(cat << 'EOF'
     ssl_get() {
         while [ $# -gt 0 ]; do
             case "$1" in
@@ -148,8 +148,8 @@ elif command -v openssl >/dev/null 2>&1; then
             esac
         done
     }
-EOF
-    )
+#EOF
+#    )
 
     #eval "$SSL_GET_DEF"
     #ssl_get
