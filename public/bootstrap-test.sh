@@ -150,7 +150,8 @@ elif command -v openssl >/dev/null 2>&1; then
         while [ $# -gt 0 ]; do
             case "$1" in
                 *)
-                    _sg_url="$1"; shift 
+                    _sg_url="$1"; shift
+                    ;;
             esac
         done
     }
