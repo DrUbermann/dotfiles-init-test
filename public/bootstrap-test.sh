@@ -139,7 +139,7 @@
 # EOF
 #     )
 
-FCN_DEF=$(cat << 'EOF'
+#FCN_DEF=$(cat << 'EOF'
 fcn() {
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -148,9 +148,9 @@ fcn() {
         esac
     done
 }
-EOF
-)
-eval "$FCN_DEF"
+#EOF
+#)
+#eval "$FCN_DEF"
 fcn
 echo here
 
