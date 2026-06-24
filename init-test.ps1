@@ -42,26 +42,25 @@ foreach (`$path in `$paths) {
 }
 "@ | Out-File -FilePath $tmpScript -Encoding ASCII
 
-    $proc = Start-Process powershell.exe -Verb RunAs -PassThru -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $tmpScript -WindowStyle Hidden
+    $proc = Start-Process powershell.exe -Verb RunAs -PassThru -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "$tmpScript" -WindowStyle Hidden
     $proc.WaitForExit()
-    Write-Host "completed $tmpScript"
+    #Write-Host "completed $tmpScript"
     Remove-Item $tmpScript -ErrorAction SilentlyContinue
 
     $script = $MyInvocation.MyCommand.Path
     Write-Host "script = $script"
-    $proc = Start-Process powershell.exe -PassThru -ArgumentList "-NoExit", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $script
-    Start-Sleep -Seconds 10
-    Write-Host "completed $script"
+    $proc = Start-Process powershell.exe -PassThru -ArgumentList "-NoExit", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "$script"
+    #Start-Sleep -Seconds 10
+    #Write-Host "completed $script"
     exit
 }
 
-Write-Host 'after if ($PSVersionTable.CLRVersion.Major -lt 4)'
+#Write-Host 'after if ($PSVersionTable.CLRVersion.Major -lt 4)'
 $client = New-Object System.Net.WebClient
 $client.Headers.Add('Authorization', "Basic $Env:creds")
-Invoke-Expression $client.DownloadString('https://dotfiles-init-test.drubermann.workers.dev/.excu/chezmoi-install-legacy.ps1')
+Invoke-Expression $client.DownloadString('https://dotfiles-init-test.drubermann.workers.dev/.excu/chezmoi-install-legacy.ps1') init --apply "$url_dotfiles"
 
 }
 
-Write-Host 'after if ([System.Environment]::'
 #$Env:LGR_LVL_CNSL = 0
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HOME/chezmoi.tmp/init.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HOME\chezmoi.tmp\init.ps1"
