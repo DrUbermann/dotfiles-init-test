@@ -138,7 +138,12 @@ elif command -v openssl >/dev/null 2>&1; then
         }
 EOF
     )
+
+
+
+
     eval "$SSL_GET_DEF"
+    echo hi
     _cmd="ssl_get -o -"
 else
     printf 'None of curl or wget or openssl found.\n'
