@@ -58,7 +58,7 @@ foreach (`$path in `$paths) {
 #Write-Host 'after if ($PSVersionTable.CLRVersion.Major -lt 4)'
 $client = New-Object System.Net.WebClient
 $client.Headers.Add('Authorization', "Basic $Env:creds")
-Invoke-Expression $client.DownloadString('https://dotfiles-init-test.drubermann.workers.dev/.excu/chezmoi-install-legacy.ps1') init --apply "$url_dotfiles"
+& ([scriptblock]::Create($client.DownloadString('https://dotfiles-init-test.drubermann.workers.dev/.excu/chezmoi-install-legacy.ps1'))) init --apply $url_dotfiles
 
 }
 
