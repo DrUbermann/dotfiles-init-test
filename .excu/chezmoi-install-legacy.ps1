@@ -7,38 +7,52 @@
     https://get.chezmoi.io/ps1 script and its precompiled binaries won't run.
 
 .DESCRIPTION
-    Same behaviour as Install-ChezmoiLegacy.ps1, but logging uses native
-    PowerShell streams instead of custom log-debug/log-info/log-crit wrapper
-    functions:
+    The official install.ps1 requires PowerShell 3.0+ (it calls
+    Set-StrictMode -Version 3.0) and .NET 4.5+ APIs (Tls12, ZipFile) that
+    powershell.exe won't use even if .NET 4.x is installed, unless it has been
+    explicitly redirected to the newer CLR. It also only ever downloads a
+    prebuilt release archive, which doesn't exist for Windows 7-compatible
+    binaries.
 
-      - debug-level messages use Write-Debug, controlled by the built-in
-        -Debug common parameter instead of a custom -EnableDebug/-d switch.
-      - info-level messages still use Write-Host directly -- there isn't a
-        more "native" way to print plain text unconditionally, so this one
-        is unchanged.
-      - critical/fatal messages use Write-Error -ErrorAction Continue. The
-        -ErrorAction Continue is required here: this script sets
-        $ErrorActionPreference = 'Stop' globally so *unexpected* errors are
-        caught by the trap below, and without overriding it locally, every
-        intentional Write-Error call would itself become a terminating
-        error right there instead of reaching the explicit `exit` after it.
+    This script avoids PowerShell 3.0+-only cmdlets (no Invoke-WebRequest,
+    no Invoke-RestMethod, no ConvertFrom-Json) and instead:
 
-    One practical trade-off either way: Write-Error prints PowerShell's
-    standard multi-line error record (red text, category info, position),
-    not the single colored "critical ..." line the custom version produced.
-    If you want that exact compact look back, the custom-function version
-    is the one to use.
+      1. Downloads and extracts the go-legacy-win7 toolchain
+         (https://github.com/thongtech/go-legacy-win7), a Go fork that keeps
+         Windows 7 / Server 2008 R2 support that upstream Go dropped after 1.21.
+      2. Downloads chezmoi's own source for the target version and runs
+         `go install .` from inside it, rather than `go install pkg@version`
+         -- chezmoi's go.mod currently has `exclude` directives, which Go
+         refuses for the pkg@version form on any Go version (not specific
+         to this legacy toolchain).
+      3. If extra arguments were given, execs the resulting chezmoi.exe with
+         them, e.g. `init --apply <repo>` -- same convention as the official
+         script.
 
-    The PowerShell 3.0+/.NET 4.5+ rationale, and the go-legacy-win7 build
-    steps themselves, are unchanged -- see Install-ChezmoiLegacy.ps1 for the
-    full explanation if you haven't read it already.
+    Note: chezmoi's own module fetch (via `go install`) and the resulting
+    chezmoi.exe's own HTTPS calls go through Go's bundled crypto/tls, not
+    PowerShell's .NET stack, so the CLR/TLS concerns below only affect *this*
+    script's own downloads (the go-legacy-win7 toolchain itself).
+
+    Logging uses native PowerShell streams instead of custom wrapper
+    functions: debug-level messages use Write-Debug (controlled by the
+    built-in -Debug common parameter), info-level messages use Write-Host
+    directly, and critical/fatal messages use Write-Error -ErrorAction
+    Continue (the -ErrorAction override is required because
+    $ErrorActionPreference is set to 'Stop' globally below, so unexpected
+    errors are caught by the trap -- without it, every intentional
+    Write-Error call would itself become a terminating error right there
+    instead of reaching the explicit `exit` that follows it).
 
 .PARAMETER BinDir
     Where chezmoi.exe ends up (passed to `go install` via GOBIN).
     Default: .\bin under the current directory. Alias: b
 
 .PARAMETER ChezmoiTag
-    chezmoi version to build, e.g. v2.69.4. Default: latest. Alias: t
+    chezmoi version to build, e.g. v2.69.4. Default: latest, which resolves
+    via the GitHub releases API to the actual current tag. Used to fetch
+    chezmoi's source archive (not passed to `go install pkg@version` --
+    see the build step below for why). Alias: t
 
 .PARAMETER GoLegacyTag
     go-legacy-win7 release to install, e.g. go1.24.5-1. Default: latest.
@@ -46,29 +60,34 @@
 .PARAMETER GoRoot
     Where to install the go-legacy-win7 toolchain. Reused on later runs
     unless -Force is given. Default: $env:LOCALAPPDATA\go-legacy-win7
+    Any wrapping folder the archive extracts (e.g. go-legacy-win7\bin\go.exe)
+    gets flattened into GoRoot itself on a fresh extraction, so GoRoot ends
+    up directly containing bin\ rather than being a parent of it.
 
 .PARAMETER Force
     Re-download and re-extract the toolchain even if GoRoot already has one.
 
 .PARAMETER ChezmoiArgs
     Everything after the named parameters is passed straight to chezmoi.exe
-    once it's built.
+    once it's built. Use -- to separate this script's own flags from chezmoi's,
+    same as the official script.
 
 .EXAMPLE
-    PS> .\Install-ChezmoiLegacy.Natives.ps1 init --apply https://github.com/Owner/Repo.git
+    PS> .\Install-ChezmoiLegacy.ps1 -- init --apply https://github.com/Owner/Repo.git
 
 .EXAMPLE
     Use the built-in -Debug common parameter for verbose log output (note:
-    plain -Debug now, there's no -d short alias for it):
+    plain -Debug, there's no -d short alias for it the way the old
+    -EnableDebug switch had):
 
-    PS> .\Install-ChezmoiLegacy.Natives.ps1 -Debug init --apply https://github.com/Owner/Repo.git
+    PS> .\Install-ChezmoiLegacy.ps1 -Debug -- init --apply https://github.com/Owner/Repo.git
 
 .EXAMPLE
     One-liner equivalent of the official script's iex+irm pattern, but using
     WebClient since irm/Invoke-RestMethod doesn't exist in PowerShell 2.0:
 
-    PS> $body = (New-Object Net.WebClient).DownloadString('https://your-host/Install-ChezmoiLegacy.Natives.ps1')
-    PS> Invoke-Expression "& { $body } init --apply https://github.com/Owner/Repo.git"
+    PS> $body = (New-Object Net.WebClient).DownloadString('https://your-host/Install-ChezmoiLegacy.ps1')
+    PS> Invoke-Expression "& { $body } -- init --apply https://github.com/Owner/Repo.git"
 #>
 [CmdletBinding()]
 param (
@@ -186,20 +205,38 @@ function Get-AssetUrl($json, $pattern) {
     $null
 }
 
-function Expand-ZipArchive($zipPath, $destination) {
-    try {
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
-    } catch {
-        throw 'System.IO.Compression.FileSystem unavailable -- requires .NET 4.5+ actually loaded by powershell.exe, see the CLR check above'
+function Expand-ZipArchive($zipPath, $destination, $waitForFile = 'go.exe') {
+    # System.IO.Compression.ZipFile (.NET 4.5+) didn't resolve by simple name
+    # under this CLR2-host-forced-to-CLR4 setup even though the CLR itself is
+    # genuinely v4 -- use the Shell.Application COM object instead, which has
+    # worked unchanged since Windows XP and has no .NET version dependency.
+    Write-Debug "extracting $zipPath to $destination (via Shell.Application)"
+    $shell = New-Object -ComObject Shell.Application
+    $zipItems = $shell.NameSpace($zipPath).Items()
+    $shell.NameSpace($destination).CopyHere($zipItems, 0x14)  # 0x4 = no progress UI, 0x10 = yes-to-all
+
+    # CopyHere hands off to the shell and returns before a large copy
+    # actually finishes, so poll for a file we expect rather than assuming
+    # it's done the moment this call returns. Different archives need a
+    # different marker file (go.exe for the toolchain, go.mod for source).
+    $timeout = (Get-Date).AddMinutes(5)
+    while (-not (Get-ChildItem -Path $destination -Recurse -Filter $waitForFile -ErrorAction SilentlyContinue) -and (Get-Date) -lt $timeout) {
+        Start-Sleep -Seconds 1
     }
-    Write-Debug "extracting $zipPath to $destination"
-    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $destination)
+    if (-not (Get-ChildItem -Path $destination -Recurse -Filter $waitForFile -ErrorAction SilentlyContinue)) {
+        throw "zip extraction via Shell.Application timed out -- $waitForFile not found under $destination"
+    }
 }
 
 # --- 1. ensure the go-legacy-win7 toolchain -------------------------------------
-$goExe = Join-Path $GoRoot 'bin\go.exe'
-if ((Test-Path $goExe) -and -not $Force) {
-    Write-Host "info found existing go-legacy-win7 toolchain at $GoRoot (use -Force to redo)"
+function Find-GoExe($root) {
+    Get-ChildItem -Path $root -Recurse -Filter 'go.exe' -ErrorAction SilentlyContinue |
+        Select-Object -First 1 -ExpandProperty FullName
+}
+
+$goExe = Find-GoExe $GoRoot
+if ($goExe -and -not $Force) {
+    Write-Host "info found existing go-legacy-win7 toolchain at $goExe (use -Force to redo)"
 } else {
     $arch = Get-Arch
     Write-Host "info looking up go-legacy-win7 release '$GoLegacyTag' for windows/$arch"
@@ -221,21 +258,34 @@ if ((Test-Path $goExe) -and -not $Force) {
         Remove-Item -Recurse -Force $GoRoot
     }
 
-    $extractDir = Join-Path $tempDir 'extracted'
-    New-Item -ItemType Directory -Path $extractDir | Out-Null
-    Expand-ZipArchive $zipPath $extractDir
+    # extract straight into GoRoot -- no separate Move-Item step, so there's
+    # nothing left to nest incorrectly if GoRoot happens to already exist.
+    New-Item -ItemType Directory -Path $GoRoot -Force | Out-Null
+    Expand-ZipArchive $zipPath $GoRoot
 
-    # the archive normally contains a single top-level folder
-    $topLevel = Get-ChildItem -Path $extractDir
-    New-Item -ItemType Directory -Path (Split-Path $GoRoot -Parent) -Force | Out-Null
-    if ($topLevel.Count -eq 1 -and $topLevel[0].PSIsContainer) {
-        Move-Item -Path $topLevel[0].FullName -Destination $GoRoot
-    } else {
-        Move-Item -Path $extractDir -Destination $GoRoot
+    # don't assume a fixed nesting depth (single wrapping folder, double,
+    # none) -- search for go.exe wherever it actually landed instead.
+    $goExe = Find-GoExe $GoRoot
+    if (-not $goExe) {
+        Write-Error "go.exe not found anywhere under $GoRoot after extraction -- check the archive layout with: Get-ChildItem -Recurse $GoRoot" -ErrorAction Continue
+        exit 1
     }
 
-    Write-Host "info installed go-legacy-win7 $($release.Tag) to $GoRoot"
+    # the archive wraps everything in its own folder (e.g. go-legacy-win7\bin\go.exe)
+    # -- flatten that wrapper's contents up into GoRoot itself, so -GoRoot ends up
+    # being the literal folder that contains bin\, not a parent of it.
+    $wrapperDir = Split-Path (Split-Path $goExe -Parent) -Parent
+    if ($wrapperDir -ne $GoRoot) {
+        Write-Debug "flattening $wrapperDir into $GoRoot"
+        Get-ChildItem -Path $wrapperDir -Force | Move-Item -Destination $GoRoot -Force
+        Remove-Item -Recurse -Force $wrapperDir -ErrorAction SilentlyContinue
+        $goExe = Find-GoExe $GoRoot
+    }
+
+    Write-Host "info installed go-legacy-win7 $($release.Tag) -- go.exe at $goExe"
 }
+
+$actualGoRoot = Split-Path (Split-Path $goExe -Parent) -Parent
 
 # --- 2. build chezmoi from source ------------------------------------------------
 if (-not (Test-Path $BinDir)) {
@@ -243,17 +293,53 @@ if (-not (Test-Path $BinDir)) {
 }
 $BinDir = (Resolve-Path $BinDir).Path
 
-$env:GOROOT = $GoRoot
-$env:PATH = "$GoRoot\bin;$env:PATH"
+$env:GOROOT = $actualGoRoot
+$env:PATH = "$(Split-Path $goExe -Parent);$env:PATH"
 if (-not $env:GOPATH) { $env:GOPATH = Join-Path $env:USERPROFILE 'go' }
 $env:GOBIN = $BinDir
 
-$modulePath = 'github.com/twpayne/chezmoi/v2'
-Write-Host "info building $modulePath@$ChezmoiTag with $goExe (first build can take a few minutes)"
-& $goExe install "$modulePath@$ChezmoiTag"
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "go install failed with exit code $LASTEXITCODE" -ErrorAction Continue
-    exit $LASTEXITCODE
+# `go install github.com/twpayne/chezmoi/v2@<tag>` fails on *any* Go version,
+# not just this legacy one: chezmoi's go.mod currently carries `exclude`
+# directives (working around a charmbracelet/bubbles regression -- see
+# https://github.com/twpayne/chezmoi/issues/4405), and `go install pkg@version`
+# refuses to install any module whose own go.mod has replace/exclude
+# directives, since it can't be treated as if it were the main module. See
+# https://github.com/golang/go/issues/44840. Downloading the source and
+# building from inside it sidesteps this entirely, since the module then
+# genuinely *is* the main module.
+if ($ChezmoiTag -eq 'latest') {
+    Write-Host "info looking up latest chezmoi release"
+    $resolvedChezmoiTag = (Get-GitHubRelease 'twpayne' 'chezmoi' 'latest').Tag
+} else {
+    $resolvedChezmoiTag = $ChezmoiTag
+}
+
+Write-Host "info downloading chezmoi $resolvedChezmoiTag source"
+$chezmoiZipPath = Join-Path $tempDir 'chezmoi-src.zip'
+Invoke-FileDownload "https://github.com/twpayne/chezmoi/archive/refs/tags/$resolvedChezmoiTag.zip" $chezmoiZipPath
+
+$chezmoiSrcExtractDir = Join-Path $tempDir 'chezmoi-src'
+New-Item -ItemType Directory -Path $chezmoiSrcExtractDir | Out-Null
+Expand-ZipArchive $chezmoiZipPath $chezmoiSrcExtractDir 'go.mod'
+
+$chezmoiGoMod = Get-ChildItem -Path $chezmoiSrcExtractDir -Recurse -Filter 'go.mod' -ErrorAction SilentlyContinue | Select-Object -First 1
+if (-not $chezmoiGoMod) {
+    Write-Error "go.mod not found anywhere under $chezmoiSrcExtractDir after extracting chezmoi $resolvedChezmoiTag source" -ErrorAction Continue
+    exit 1
+}
+$chezmoiSrcDir = $chezmoiGoMod.DirectoryName
+
+Write-Host "info building chezmoi $resolvedChezmoiTag from source with $goExe (first build can take a few minutes)"
+Push-Location $chezmoiSrcDir
+try {
+    & $goExe install .
+    $buildExitCode = $LASTEXITCODE
+} finally {
+    Pop-Location
+}
+if ($buildExitCode -ne 0) {
+    Write-Error "go install failed with exit code $buildExitCode" -ErrorAction Continue
+    exit $buildExitCode
 }
 
 $chezmoiExe = Join-Path $BinDir 'chezmoi.exe'

@@ -225,7 +225,7 @@ Move-Item {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config"
 (Get-Content "./gitconfig") -replace '^(\s*url\s*=\s*https://)[A-Za-z0-9_-]*@', '$1' | Set-Content {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config" | quote }}
 
 ## Use integer value for TLS 1.2 to support .NET 4.0
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]3072
+#[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]3072
 
 {{ if lookPath "git" }}
 git clone --depth 1 "https://github.com/$REPO_OWNER/$REPO_CMN" cmn
@@ -234,7 +234,9 @@ Compress-Archive -Path cmn/* -DestinationPath repo.zip
 {{ else }}
 #### Simpler version for PowerShell 5+
 # Invoke-WebRequest -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_CMN/zipball/master" -Headers @{ Authorization = "Bearer $GITHUB_PAT" } -OutFile (Join-Path $PWD "repo.zip")
+####
 
+####
 $request = [System.Net.HttpWebRequest]::Create("https://api.github.com/repos/$REPO_OWNER/$REPO_CMN/zipball/master")
 $request.Method = "GET"
 $request.Headers.Add("Authorization", "Bearer $GITHUB_PAT")
@@ -246,11 +248,28 @@ $response.Close()
 $client = New-Object System.Net.WebClient
 $client.Headers.Add("User-Agent", "PowerShell")
 $client.DownloadFile($redirectUrl, (Join-Path $PWD "repo.zip"))
+####
 
+#### Simpler version for PowerShell 5+
 Expand-Archive -Path "repo.zip" -DestinationPath "."
 #$inner = Get-ChildItem -Directory | Select-Object -First 1
 $inner = Get-ChildItem -Directory | Where-Object { $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
 Rename-Item $inner.FullName "cmn"
+####
+
+#### Gemini 3.1 (2026-06)
+## Convert relative paths to Absolute Paths (Required for PS2 COM Object)
+$zipPath = Join-Path -Path $PWD.Path -ChildPath "repo.zip"
+$destPath = $PWD.Path
+$shell = New-Object -ComObject Shell.Application
+$zipNameSpace = $shell.NameSpace($zipPath)
+$destNameSpace = $shell.NameSpace($destPath)
+$destNameSpace.CopyHere($zipNameSpace.Items(), 1044)  ## The '1044' flag suppresses Windows progress dialogs and answers "Yes to All" for overwrites
+## Since CopyHere runs asynchronously we must pause briefly to give Windows time to finish writing the folder to disk, otherwise the next line will search before the folder exists.
+Start-Sleep -Seconds 4
+$inner = Get-ChildItem -Path $destPath | Where-Object { $_.PSIsContainer -and $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
+Rename-Item -Path $inner.FullName -NewName "cmn"
+####
 {{ end }}
 
 & ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://get.chezmoi.io/ps1"))) -b "$HOME\.local\bin"
