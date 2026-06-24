@@ -55,23 +55,43 @@ ssl_get() {
     [ "$_sg_out" = "-" ] && _sg_dest="/dev/stdout"
 
     _sg_redirects=0
-    _sg_first=1
+    _sg_cross_origin=0
+    _sg_orig_host=$(printf '%s' "$_sg_url" | sed 's|^https://||; s|/.*||')
 
     while [ "$_sg_redirects" -lt "$_sg_max" ]; do
         _sg_host=$(printf '%s' "$_sg_url" | sed 's|^https://||; s|/.*||')
+        
+        # If the domain changes at any point, flag as cross-origin
+        if [ "$_sg_host" != "$_sg_orig_host" ]; then
+            _sg_cross_origin=1
+        fi
+        
         _sg_path=$(printf '%s' "$_sg_url" | sed "s|^https://${_sg_host}||")
         _sg_path="${_sg_path:-/}"
 
         {
             printf 'GET %s HTTP/1.0\r\n' "$_sg_path"
             printf 'Host: %s\r\n'        "$_sg_host"
-            if [ "$_sg_first" -eq 1 ]; then
-                _sg_i=1
-                while [ "$_sg_i" -le "$_sg_hcount" ]; do
-                    eval "printf '%s\r\n' \"\$_sg_h${_sg_i}\""
-                    _sg_i=$((_sg_i + 1))
-                done
-            fi
+            
+            _sg_i=1
+            while [ "$_sg_i" -le "$_sg_hcount" ]; do
+                eval "_sg_h_val=\"\$_sg_h${_sg_i}\""
+                _sg_skip=0
+                
+                # Scrub Authorization headers on cross-origin requests
+                if [ "$_sg_cross_origin" -eq 1 ]; then
+                    _sg_h_key=$(printf '%s' "$_sg_h_val" | cut -d: -f1 | tr '[:upper:]' '[:lower:]')
+                    if [ "$_sg_h_key" = "authorization" ]; then
+                        _sg_skip=1
+                    fi
+                fi
+                
+                if [ "$_sg_skip" -eq 0 ]; then
+                    printf '%s\r\n' "$_sg_h_val"
+                fi
+                _sg_i=$((_sg_i + 1))
+            done
+            
             printf 'User-Agent: ssl_get\r\n'
             printf 'Connection: close\r\n'
             printf '\r\n'
@@ -119,7 +139,6 @@ ssl_get() {
                 }
                 printf 'ssl_get: redirect -> %s\n' "$_sg_location" >&2
                 _sg_url="$_sg_location"
-                _sg_first=0
                 ;;
             ("")
                 printf 'ssl_get: no response (TLS or network failure?)\n' >&2
@@ -136,11 +155,11 @@ ssl_get() {
 
     printf 'ssl_get: too many redirects\n' >&2
     return 1
-    }
+}
 EOF
-    )
-    export SSL_GET_DEF
-    eval "$SSL_GET_DEF"
+)
+export SSL_GET_DEF
+eval "$SSL_GET_DEF"
     _cmd="ssl_get -o -"
 else
     printf 'None of curl or wget or openssl found.\n'
