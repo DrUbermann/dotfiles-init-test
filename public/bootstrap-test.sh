@@ -141,7 +141,7 @@ elif command -v openssl >/dev/null 2>&1; then
 
     SSL_GET_DEF=$(cat << 'EOF'
     ssl_get() {
-        echo 'ssl get def'
+        echo 'echo hi'
     }
 EOF
     )
