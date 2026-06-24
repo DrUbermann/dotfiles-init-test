@@ -151,10 +151,7 @@ elif command -v openssl >/dev/null 2>&1; then
             case "$1" in
                 --output|-o)
                     _sg_out="$2"; shift 2 ;;
-                --header|-H)
-                    _sg_hcount=$((_sg_hcount + 1))
-                    eval "_sg_h${_sg_hcount}=\"\$2\""
-                    shift 2 ;;
+
                 --)
                     _sg_url="$2"; shift 2 ;;
                 -*)
