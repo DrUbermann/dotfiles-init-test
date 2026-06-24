@@ -141,7 +141,29 @@ elif command -v openssl >/dev/null 2>&1; then
 
     SSL_GET_DEF=$(cat << 'EOF'
     ssl_get() {
-        echo 'echo in ssl get'
+        _sg_out="-"
+        _sg_url=""
+        _sg_hcount=0
+        _sg_max=10
+        _sg_meta="${TMPDIR:-/tmp}/_sg_$$.tmp"
+
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --output|-o)
+                    _sg_out="$2"; shift 2 ;;
+                --header|-H)
+                    _sg_hcount=$((_sg_hcount + 1))
+                    eval "_sg_h${_sg_hcount}=\"\$2\""
+                    shift 2 ;;
+                --)
+                    _sg_url="$2"; shift 2 ;;
+                -*)
+                    printf 'ssl_get: unknown option: %s\n' "$1" >&2
+                    return 1 ;;
+                *)
+                    _sg_url="$1"; shift ;;
+            esac
+        done
     }
 EOF
     )
