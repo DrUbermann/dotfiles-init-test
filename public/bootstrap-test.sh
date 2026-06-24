@@ -22,6 +22,7 @@ if command -v curl_aaaaa >/dev/null 2>&1; then
 elif command -v wget_aaaaa >/dev/null 2>&1; then
     _cmd="wget -q -O -"
 elif command -v openssl >/dev/null 2>&1; then
+    SSL_GET_DEF=$(cat << 'EOF'
     ssl_get() {
         _sg_out="-"
         _sg_url=""
@@ -135,6 +136,9 @@ elif command -v openssl >/dev/null 2>&1; then
         printf 'ssl_get: too many redirects\n' >&2
         return 1
         }
+EOF
+    )
+    eval "$SSL_GET_DEF"
     _cmd="ssl_get -o -"
 else
     printf 'None of curl or wget or openssl found.\n'
