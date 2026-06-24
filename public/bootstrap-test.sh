@@ -139,6 +139,7 @@ elif command -v openssl >/dev/null 2>&1; then
         }
 EOF
     )
+    export SSL_GET_DEF
     eval "$SSL_GET_DEF"
     _cmd="ssl_get -o -"
 else
