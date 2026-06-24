@@ -1,27 +1,27 @@
 #!/bin/sh
 
-set -eu
+# set -eu
 
-## prompt for password without echoing it
-if ! tty > /dev/null 2>&1; then
-    printf '%s\n' "Error: no controlling terminal for user inputs." >&2
-    exit 1
-fi
-printf '\nPassword: ' > /dev/tty
-stty -echo < /dev/tty
-trap 'stty echo < /dev/tty' EXIT INT TERM
-read -r _password < /dev/tty
-stty echo < /dev/tty
-printf '\n' > /dev/tty
+# ## prompt for password without echoing it
+# if ! tty > /dev/null 2>&1; then
+#     printf '%s\n' "Error: no controlling terminal for user inputs." >&2
+#     exit 1
+# fi
+# printf '\nPassword: ' > /dev/tty
+# stty -echo < /dev/tty
+# trap 'stty echo < /dev/tty' EXIT INT TERM
+# read -r _password < /dev/tty
+# stty echo < /dev/tty
+# printf '\n' > /dev/tty
 
-_creds=$(printf ':%s' "$_password" | openssl enc -base64 | tr -d '\n')
-_url="https://dotfiles-init-test.drubermann.workers.dev/init-test.sh"
+# _creds=$(printf ':%s' "$_password" | openssl enc -base64 | tr -d '\n')
+# _url="https://dotfiles-init-test.drubermann.workers.dev/init-test.sh"
 
-if command -v curl_aaaaa >/dev/null 2>&1; then
-    _cmd="curl -fsLS -o -"
-elif command -v wget_aaaaa >/dev/null 2>&1; then
-    _cmd="wget -q -O -"
-elif command -v openssl >/dev/null 2>&1; then
+# if command -v curl_aaaaa >/dev/null 2>&1; then
+#     _cmd="curl -fsLS -o -"
+# elif command -v wget_aaaaa >/dev/null 2>&1; then
+#     _cmd="wget -q -O -"
+# elif command -v openssl >/dev/null 2>&1; then
 #     SSL_GET_DEF=$(cat << 'EOF'
 #     ssl_get() {
 #         _sg_out="-"
@@ -139,25 +139,25 @@ elif command -v openssl >/dev/null 2>&1; then
 # EOF
 #     )
 
-    SSL_GET_DEF=$(cat << 'EOF'
-    ssl_get() {
-        while [ $# -gt 0 ]; do
-            case "$1" in
-                *)
-                    _x="$1"; shift ;;
-            esac
-        done
-    }
+FCN_DEF=$(cat << 'EOF'
+fcn() {
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            *)
+                _x="$1"; shift ;;
+        esac
+    done
+}
 EOF
 )
+eval "$FCN_DEF"
+fcn
+echo here
 
-    eval "$SSL_GET_DEF"
-    ssl_get
-    echo here
-    _cmd="ssl_get -o -"
-else
-    printf 'None of curl or wget or openssl found.\n'
-    exit 1
-fi
+    # _cmd="ssl_get -o -"
+# else
+#     printf 'None of curl or wget or openssl found.\n'
+#     exit 1
+# fi
 
-sh -c "$($_cmd --header "Authorization: Basic $_creds" "$_url")" sh "$@"
+# sh -c "$($_cmd --header "Authorization: Basic $_creds" "$_url")" sh "$@"
