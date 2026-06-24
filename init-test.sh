@@ -11,6 +11,34 @@ elif command -v wget_aaaaa >/dev/null 2>&1; then
 elif command -v openssl >/dev/null 2>&1; then
     eval "$SSL_GET_DEF"
     _cmd="ssl_get -o -"
+    #### Create fake wget so get.chezmoi.io script will use ssl_get instead
+    mkdir -p "${TMPDIR:-/tmp}/fakepath"
+    cat << 'EOF' > "${TMPDIR:-/tmp}/fakepath/wget"
+#!/bin/sh
+
+eval "$SSL_GET_DEF"
+
+header=""
+output=""
+url=""
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        (-q) shift ;;
+        (-O) output="$2"; shift 2 ;;
+        (--header) header="$2"; shift 2 ;;
+        (*) url="$1"; shift ;;
+    esac
+done
+
+if [ -n "$header" ]; then
+    ssl_get --header "$header" "$url" > "$output"
+else
+    ssl_get "$url" > "$output"
+fi
+EOF
+    chmod +x "${TMPDIR:-/tmp}/fakepath/wget"
+    export PATH="${TMPDIR:-/tmp}/fakepath:$PATH"    
 else
     printf 'None of curl or wget or openssl found.\n'
     exit 1
