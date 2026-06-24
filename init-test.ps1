@@ -44,8 +44,8 @@ foreach (`$path in `$paths) {
 
     $proc = Start-Process powershell.exe -Verb RunAs -PassThru -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "$tmpScript" -WindowStyle Hidden
     $proc.WaitForExit()
-    #Write-Host "completed $tmpScript"
-    Remove-Item $tmpScript -ErrorAction SilentlyContinue
+    Write-Host "completed $tmpScript"
+    #Remove-Item $tmpScript -ErrorAction SilentlyContinue
 
     $script = $MyInvocation.MyCommand.Path
     Write-Host "script = $script"
