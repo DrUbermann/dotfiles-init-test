@@ -39,8 +39,6 @@ fi
 EOF
     chmod +x "${TMPDIR:-/tmp}/fakepath/wget"
     export PATH="${TMPDIR:-/tmp}/fakepath:$PATH"
-    ls
-    wget -q -O test.tmp https://get.chezmoi.io
 else
     printf 'None of curl or wget or openssl found.\n'
     exit 1
@@ -48,6 +46,6 @@ fi
 
 cd "$HOME" || exit 1
 
-sh -c "$($_cmd https://get.chezmoi.io)" sh init --apply https://github.com/DrUbermann/dotfiles-init-test.git
+sh -c "$($_cmd https://get.chezmoi.io)" sh #init --apply https://github.com/DrUbermann/dotfiles-init-test.git
 #export LGR_LVL_CNSL=0 
 "$HOME/chezmoi.tmp/init.ps1" "$@"
