@@ -342,6 +342,52 @@ if ($buildExitCode -ne 0) {
     exit $buildExitCode
 }
 
+# --- 2b. work around a termenv bug: it treats a failed SetConsoleMode call as
+# fatal, but ERROR_INVALID_PARAMETER from that call is the documented,
+# expected way Windows indicates a pre-Windows-10 console doesn't support
+# ENABLE_VIRTUAL_TERMINAL_PROCESSING -- see
+# https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences.
+# The build above already pulled termenv into the module cache as an
+# ordinary dependency; copy it, remove the one line that turns that expected
+# failure into a fatal error, and rebuild chezmoi against the patched copy.
+$termenvCacheDir = Get-ChildItem -Path (Join-Path $env:GOPATH 'pkg\mod\github.com\muesli') -Directory -Filter 'termenv@*' -ErrorAction SilentlyContinue | Select-Object -Last 1
+if ($termenvCacheDir) {
+    $patchedTermenv = Join-Path $env:LOCALAPPDATA 'termenv-patched'
+    if (-not (Test-Path $patchedTermenv)) {
+        Write-Host "info patching $($termenvCacheDir.Name) for pre-Windows-10 console compatibility"
+        Copy-Item -Recurse -Force $termenvCacheDir.FullName $patchedTermenv
+        Get-ChildItem -Recurse $patchedTermenv | Where-Object { -not $_.PSIsContainer } | ForEach-Object { $_.IsReadOnly = $false }
+
+        $termenvWinFile = Join-Path $patchedTermenv 'termenv_windows.go'
+        (Get-Content $termenvWinFile) |
+            Where-Object {
+                $_ -notmatch 'err = fmt\.Errorf\("windows\.SetConsoleMode: %w", err2\)' -and
+                $_ -notmatch '^\s*"fmt"\s*$'
+            } |
+            Set-Content $termenvWinFile
+    } else {
+        Write-Debug "reusing existing patched termenv at $patchedTermenv"
+    }
+
+    $replaceLine = "replace github.com/muesli/termenv => $($patchedTermenv -replace '\\', '/')"
+    Add-Content -Path (Join-Path $chezmoiSrcDir 'go.mod') -Value "`n$replaceLine"
+
+    Write-Host "info rebuilding chezmoi against the patched termenv"
+    Push-Location $chezmoiSrcDir
+    try {
+        & $goExe install .
+        $buildExitCode = $LASTEXITCODE
+    } finally {
+        Pop-Location
+    }
+    if ($buildExitCode -ne 0) {
+        Write-Error "rebuild against patched termenv failed with exit code $buildExitCode" -ErrorAction Continue
+        exit $buildExitCode
+    }
+} else {
+    Write-Host "info termenv not found in the module cache -- skipping the SetConsoleMode compatibility patch (chezmoi.exe was still built normally)"
+}
+
 $chezmoiExe = Join-Path $BinDir 'chezmoi.exe'
 if (-not (Test-Path $chezmoiExe)) {
     Write-Error "build appeared to succeed but $chezmoiExe was not found" -ErrorAction Continue

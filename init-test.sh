@@ -45,7 +45,7 @@ while [ "$#" -gt 0 ]; do
             eval "h${hcount}=\"\${1#*=}\""
             shift ;;
         (-*) 
-            # Ignore any other wget flags
+            ## Ignore any other wget flags
             shift ;;
         (*) 
             url="$1"; shift ;;
