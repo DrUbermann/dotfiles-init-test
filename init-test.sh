@@ -10,7 +10,7 @@ elif command -v wget_aaaaa >/dev/null 2>&1; then
     _cmd="wget -q -O -"
 elif command -v openssl >/dev/null 2>&1; then
     eval "$SSL_GET_DEF"
-    _cmd="ssl_get -o -"
+    _cmd="wget -q -O -" #_cmd="ssl_get -o -"
     #### Create fake wget so get.chezmoi.io script will use ssl_get instead
     mkdir -p "${TMPDIR:-/tmp}/fakepath"
     cat << 'EOF' > "${TMPDIR:-/tmp}/fakepath/wget"
