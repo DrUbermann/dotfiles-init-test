@@ -141,26 +141,19 @@ elif command -v openssl >/dev/null 2>&1; then
 
     SSL_GET_DEF=$(cat << 'EOF'
     ssl_get() {
-        _sg_out="-"
-        _sg_url=""
-        _sg_hcount=0
-        _sg_max=10
-        _sg_meta="${TMPDIR:-/tmp}/_sg_$$.tmp"
-
         while [ $# -gt 0 ]; do
             case "$1" in
                 *)
-                    _sg_url="$1"; shift
-                    ;;
+                    _x="$1"; shift ;;
             esac
         done
     }
 EOF
     )
 
-    eval "$SSL_GET_DEF"
-    ssl_get
-    echo here
+    #eval "$SSL_GET_DEF"
+    #ssl_get
+    #echo here
     #_cmd="ssl_get -o -"
 else
     printf 'None of curl or wget or openssl found.\n'
