@@ -350,7 +350,7 @@ if ($buildExitCode -ne 0) {
 # The build above already pulled termenv into the module cache as an
 # ordinary dependency; copy it, remove the one line that turns that expected
 # failure into a fatal error, and rebuild chezmoi against the patched copy.
-$termenvCacheDir = Get-ChildItem -Path (Join-Path $env:GOPATH 'pkg\mod\github.com\muesli') -Directory -Filter 'termenv@*' -ErrorAction SilentlyContinue | Select-Object -Last 1
+$termenvCacheDir = Get-ChildItem -Path (Join-Path $env:GOPATH 'pkg\mod\github.com\muesli') -Filter 'termenv@*' -ErrorAction SilentlyContinue | Where-Object { $_.PSIsContainer } | Select-Object -Last 1
 if ($termenvCacheDir) {
     $patchedTermenv = Join-Path $env:LOCALAPPDATA 'termenv-patched'
     if (-not (Test-Path $patchedTermenv)) {
