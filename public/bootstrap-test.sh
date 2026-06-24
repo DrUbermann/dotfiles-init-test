@@ -149,14 +149,6 @@ elif command -v openssl >/dev/null 2>&1; then
 
         while [ $# -gt 0 ]; do
             case "$1" in
-                --output|-o)
-                    _sg_out="$2"; shift 2 ;;
-
-                --)
-                    _sg_url="$2"; shift 2 ;;
-                -*)
-                    printf 'ssl_get: unknown option: %s\n' "$1" >&2
-                    return 1 ;;
                 *)
                     _sg_url="$1"; shift ;;
             esac
