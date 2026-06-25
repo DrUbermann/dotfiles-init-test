@@ -1,61 +1,89 @@
 #!/bin/sh
 #### Source: Claude 4.6 (2026-06)
 
-
 ssl_get() {
     _sg_out="-"
     _sg_url=""
     _sg_hcount=0
     _sg_max=10
+    _sg_quiet=0
     _sg_meta="${TMPDIR:-/tmp}/_sg_$$.tmp"
 
     while [ $# -gt 0 ]; do
         case "$1" in
-            --output|-o)
+            #### NB (2026-06): leading parenthesis in case blocks in code with outer parenthesis necessary for some old parsers, eg OpenBSD ksh
+            (-q|--quiet)
+                _sg_quiet=1; shift ;;
+            (--output|-o)
                 _sg_out="$2"; shift 2 ;;
-            --header|-H)
+            (--header|-H)
                 _sg_hcount=$((_sg_hcount + 1))
                 eval "_sg_h${_sg_hcount}=\"\$2\""
                 shift 2 ;;
-            --)
+            (--)
                 _sg_url="$2"; shift 2 ;;
-            -*)
-                printf 'ssl_get: unknown option: %s\n' "$1" >&2
+            (-*)
+                [ "$_sg_quiet" -eq 0 ] && \
+                    printf 'ssl_get: unknown option: %s\n' "$1" >&2
                 return 1 ;;
-            *)
+            (*)
                 _sg_url="$1"; shift ;;
         esac
     done
 
-    [ -z "$_sg_url" ] && { printf 'ssl_get: no URL\n' >&2; return 1; }
+    [ -z "$_sg_url" ] && { 
+        [ "$_sg_quiet" -eq 0 ] && printf 'ssl_get: no URL\n' >&2
+        return 1
+    }
 
     _sg_dest="$_sg_out"
     [ "$_sg_out" = "-" ] && _sg_dest="/dev/stdout"
 
     _sg_redirects=0
-    _sg_first=1
+    _sg_cross_origin=0
+    _sg_orig_host=$(printf '%s' "$_sg_url" | sed 's|^https://||; s|/.*||')
 
     while [ "$_sg_redirects" -lt "$_sg_max" ]; do
         _sg_host=$(printf '%s' "$_sg_url" | sed 's|^https://||; s|/.*||')
+        
+        ## If the domain changes at any point, flag as cross-origin
+        if [ "$_sg_host" != "$_sg_orig_host" ]; then
+            _sg_cross_origin=1
+        fi
+        
         _sg_path=$(printf '%s' "$_sg_url" | sed "s|^https://${_sg_host}||")
         _sg_path="${_sg_path:-/}"
 
         {
             printf 'GET %s HTTP/1.0\r\n' "$_sg_path"
             printf 'Host: %s\r\n'        "$_sg_host"
-            if [ "$_sg_first" -eq 1 ]; then
-                _sg_i=1
-                while [ "$_sg_i" -le "$_sg_hcount" ]; do
-                    eval "printf '%s\r\n' \"\$_sg_h${_sg_i}\""
-                    _sg_i=$((_sg_i + 1))
-                done
-            fi
+            
+            _sg_i=1
+            while [ "$_sg_i" -le "$_sg_hcount" ]; do
+                eval "_sg_h_val=\"\$_sg_h${_sg_i}\""
+                _sg_skip=0
+                
+                ## Scrub Authorization headers on cross-origin requests
+                if [ "$_sg_cross_origin" -eq 1 ]; then
+                    # shellcheck disable=SC2154
+                    _sg_h_key=$(printf '%s' "$_sg_h_val" | cut -d: -f1 | tr '[:upper:]' '[:lower:]')
+                    if [ "$_sg_h_key" = "authorization" ]; then
+                        _sg_skip=1
+                    fi
+                fi
+                
+                if [ "$_sg_skip" -eq 0 ]; then
+                    printf '%s\r\n' "$_sg_h_val"
+                fi
+                _sg_i=$((_sg_i + 1))
+            done
+            
             printf 'User-Agent: ssl_get\r\n'
             printf 'Connection: close\r\n'
             printf '\r\n'
         } | openssl s_client -quiet \
-                             -connect "${_sg_host}:443" \
-                             -servername "$_sg_host" 2>/dev/null \
+                            -connect "${_sg_host}:443" \
+                            -servername "$_sg_host" 2>/dev/null \
         | {
             _p_status=""
             _p_location=""
@@ -66,10 +94,10 @@ ssl_get() {
                     _p_status=$(printf '%s' "$_p_line" | awk '{print $2}')
                 fi
                 _p_key=$(printf '%s' "$_p_line" \
-                         | cut -d: -f1 | tr '[:upper:]' '[:lower:]')
+                        | cut -d: -f1 | tr '[:upper:]' '[:lower:]')
                 if [ "$_p_key" = "location" ]; then
                     _p_location=$(printf '%s' "$_p_line" \
-                                  | cut -d: -f2- | sed 's/^ *//')
+                                | cut -d: -f2- | sed 's/^ *//')
                 fi
             done
             printf '%s\n%s\n' "$_p_status" "$_p_location" > "$_sg_meta"
@@ -85,26 +113,29 @@ ssl_get() {
         rm -f "$_sg_meta"
 
         case "$_sg_status" in
-            200)
-                [ "$_sg_out" != "-" ] && \
+            (200)
+                [ "$_sg_out" != "-" ] && [ "$_sg_quiet" -eq 0 ] && \
                     printf 'ssl_get: saved to %s\n' "$_sg_out" >&2
                 return 0
                 ;;
-            301|302|307|308)
+            (301|302|307|308)
                 [ -z "$_sg_location" ] && {
-                    printf 'ssl_get: redirect with no Location header\n' >&2
+                    [ "$_sg_quiet" -eq 0 ] && \
+                        printf 'ssl_get: redirect with no Location header\n' >&2
                     return 1
                 }
-                printf 'ssl_get: redirect -> %s\n' "$_sg_location" >&2
+                [ "$_sg_quiet" -eq 0 ] && \
+                    printf 'ssl_get: redirect -> %s\n' "$_sg_location" >&2
                 _sg_url="$_sg_location"
-                _sg_first=0
                 ;;
-            "")
-                printf 'ssl_get: no response (TLS or network failure?)\n' >&2
+            ("")
+                [ "$_sg_quiet" -eq 0 ] && \
+                    printf 'ssl_get: no response (TLS or network failure?)\n' >&2
                 return 1
                 ;;
-            *)
-                printf 'ssl_get: HTTP %s\n' "$_sg_status" >&2
+            (*)
+                [ "$_sg_quiet" -eq 0 ] && \
+                    printf 'ssl_get: HTTP %s\n' "$_sg_status" >&2
                 return 1
                 ;;
         esac
@@ -112,10 +143,10 @@ ssl_get() {
         _sg_redirects=$((_sg_redirects + 1))
     done
 
-    printf 'ssl_get: too many redirects\n' >&2
+    [ "$_sg_quiet" -eq 0 ] && printf 'ssl_get: too many redirects\n' >&2
     return 1
 }
 
 case "$0" in
-    *ssl_get.sh) ssl_get "$@" ;;  # running directly
+    *ssl_get.sh) ssl_get "$@" ;;  ## running directly
 esac

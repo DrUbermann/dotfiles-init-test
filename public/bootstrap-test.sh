@@ -28,11 +28,14 @@ ssl_get() {
     _sg_url=""
     _sg_hcount=0
     _sg_max=10
+    _sg_quiet=0
     _sg_meta="${TMPDIR:-/tmp}/_sg_$$.tmp"
 
     while [ $# -gt 0 ]; do
         case "$1" in
             #### NB (2026-06): leading parenthesis in case blocks in code with outer parenthesis necessary for some old parsers, eg OpenBSD ksh
+            (-q|--quiet)
+                _sg_quiet=1; shift ;;
             (--output|-o)
                 _sg_out="$2"; shift 2 ;;
             (--header|-H)
@@ -42,14 +45,18 @@ ssl_get() {
             (--)
                 _sg_url="$2"; shift 2 ;;
             (-*)
-                printf 'ssl_get: unknown option: %s\n' "$1" >&2
+                [ "$_sg_quiet" -eq 0 ] && \
+                    printf 'ssl_get: unknown option: %s\n' "$1" >&2
                 return 1 ;;
             (*)
                 _sg_url="$1"; shift ;;
         esac
     done
 
-    [ -z "$_sg_url" ] && { printf 'ssl_get: no URL\n' >&2; return 1; }
+    [ -z "$_sg_url" ] && { 
+        [ "$_sg_quiet" -eq 0 ] && printf 'ssl_get: no URL\n' >&2
+        return 1
+    }
 
     _sg_dest="$_sg_out"
     [ "$_sg_out" = "-" ] && _sg_dest="/dev/stdout"
@@ -61,7 +68,7 @@ ssl_get() {
     while [ "$_sg_redirects" -lt "$_sg_max" ]; do
         _sg_host=$(printf '%s' "$_sg_url" | sed 's|^https://||; s|/.*||')
         
-        # If the domain changes at any point, flag as cross-origin
+        ## If the domain changes at any point, flag as cross-origin
         if [ "$_sg_host" != "$_sg_orig_host" ]; then
             _sg_cross_origin=1
         fi
@@ -78,7 +85,7 @@ ssl_get() {
                 eval "_sg_h_val=\"\$_sg_h${_sg_i}\""
                 _sg_skip=0
                 
-                # Scrub Authorization headers on cross-origin requests
+                ## Scrub Authorization headers on cross-origin requests
                 if [ "$_sg_cross_origin" -eq 1 ]; then
                     _sg_h_key=$(printf '%s' "$_sg_h_val" | cut -d: -f1 | tr '[:upper:]' '[:lower:]')
                     if [ "$_sg_h_key" = "authorization" ]; then
@@ -128,24 +135,28 @@ ssl_get() {
 
         case "$_sg_status" in
             (200)
-                [ "$_sg_out" != "-" ] && \
+                [ "$_sg_out" != "-" ] && [ "$_sg_quiet" -eq 0 ] && \
                     printf 'ssl_get: saved to %s\n' "$_sg_out" >&2
                 return 0
                 ;;
             (301|302|307|308)
                 [ -z "$_sg_location" ] && {
-                    printf 'ssl_get: redirect with no Location header\n' >&2
+                    [ "$_sg_quiet" -eq 0 ] && \
+                        printf 'ssl_get: redirect with no Location header\n' >&2
                     return 1
                 }
-                printf 'ssl_get: redirect -> %s\n' "$_sg_location" >&2
+                [ "$_sg_quiet" -eq 0 ] && \
+                    printf 'ssl_get: redirect -> %s\n' "$_sg_location" >&2
                 _sg_url="$_sg_location"
                 ;;
             ("")
-                printf 'ssl_get: no response (TLS or network failure?)\n' >&2
+                [ "$_sg_quiet" -eq 0 ] && \
+                    printf 'ssl_get: no response (TLS or network failure?)\n' >&2
                 return 1
                 ;;
             (*)
-                printf 'ssl_get: HTTP %s\n' "$_sg_status" >&2
+                [ "$_sg_quiet" -eq 0 ] && \
+                    printf 'ssl_get: HTTP %s\n' "$_sg_status" >&2
                 return 1
                 ;;
         esac
@@ -153,14 +164,14 @@ ssl_get() {
         _sg_redirects=$((_sg_redirects + 1))
     done
 
-    printf 'ssl_get: too many redirects\n' >&2
+    [ "$_sg_quiet" -eq 0 ] && printf 'ssl_get: too many redirects\n' >&2
     return 1
 }
 EOF
 )
 export SSL_GET_DEF
 eval "$SSL_GET_DEF"
-    _cmd="ssl_get -o -"
+    _cmd="ssl_get -q -o -"
 else
     printf 'None of curl or wget or openssl found.\n'
     exit 1

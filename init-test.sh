@@ -10,32 +10,36 @@ elif command -v wget_aaaaa >/dev/null 2>&1; then
     _cmd="wget -q -O -"
 elif command -v openssl >/dev/null 2>&1; then
     eval "$SSL_GET_DEF"
-    _cmd="ssl_get -o -"
+    _cmd="ssl_get -q -o -"
     #### Create fake wget so get.chezmoi.io script will use ssl_get instead
     #### Source: Gemini 3.1
-    mkdir -p "${TMPDIR:-/tmp}/fakepath"
+mkdir -p "${TMPDIR:-/tmp}/fakepath"
     cat << 'EOF' > "${TMPDIR:-/tmp}/fakepath/wget"
 #!/bin/sh
 
+## Ensure the parent's environment variable is available
 eval "$SSL_GET_DEF"
 
 hcount=0
 out=""
 url=""
+quiet=""
 
 ## Robustly parse standard and squished wget arguments
 while [ "$#" -gt 0 ]; do
     case "$1" in
-        (-q|--quiet|-S|--server-response) 
+        (-q|--quiet)
+            quiet="-q"; shift ;;
+        (-S|--server-response) 
             shift ;;
         (-O) 
             out="$2"; shift 2 ;;
         (-qO) 
-            out="$2"; shift 2 ;;
+            quiet="-q"; out="$2"; shift 2 ;;
         (-O*) 
             out="${1#*-O}"; shift ;;
         (-qO*) 
-            out="${1#*-qO}"; shift ;;
+            quiet="-q"; out="${1#*-qO}"; shift ;;
         (--header)
             hcount=$((hcount + 1))
             eval "h${hcount}=\"\$2\""
@@ -54,6 +58,10 @@ done
 
 ## Safely reconstruct the arguments for ssl_get using positionals
 set --
+
+if [ -n "$quiet" ]; then
+    set -- "$@" "$quiet"
+fi
 
 if [ -n "$out" ]; then
     set -- "$@" "-o" "$out"
