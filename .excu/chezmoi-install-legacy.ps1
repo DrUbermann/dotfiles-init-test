@@ -342,37 +342,69 @@ if ($buildExitCode -ne 0) {
     exit $buildExitCode
 }
 
-# --- 2b. work around a termenv bug: it treats a failed SetConsoleMode call as
-# fatal, but ERROR_INVALID_PARAMETER from that call is the documented,
-# expected way Windows indicates a pre-Windows-10 console doesn't support
-# ENABLE_VIRTUAL_TERMINAL_PROCESSING -- see
-# https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences.
-# The build above already pulled termenv into the module cache as an
-# ordinary dependency; copy it, remove the one line that turns that expected
-# failure into a fatal error, and rebuild chezmoi against the patched copy.
-$termenvCacheDir = Get-ChildItem -Path (Join-Path $env:GOPATH 'pkg\mod\github.com\muesli') -Filter 'termenv@*' -ErrorAction SilentlyContinue | Where-Object { $_.PSIsContainer } | Select-Object -Last 1
-if ($termenvCacheDir) {
-    $patchedTermenv = Join-Path $env:LOCALAPPDATA 'termenv-patched'
-    if (-not (Test-Path $patchedTermenv)) {
-        Write-Host "info patching $($termenvCacheDir.Name) for pre-Windows-10 console compatibility"
-        Copy-Item -Recurse -Force $termenvCacheDir.FullName $patchedTermenv
-        Get-ChildItem -Recurse $patchedTermenv | Where-Object { -not $_.PSIsContainer } | ForEach-Object { $_.IsReadOnly = $false }
-
-        $termenvWinFile = Join-Path $patchedTermenv 'termenv_windows.go'
-        (Get-Content $termenvWinFile) |
-            Where-Object {
-                $_ -notmatch 'err = fmt\.Errorf\("windows\.SetConsoleMode: %w", err2\)' -and
-                $_ -notmatch '^\s*"fmt"\s*$'
-            } |
-            Set-Content $termenvWinFile
-    } else {
-        Write-Debug "reusing existing patched termenv at $patchedTermenv"
+# --- 2b. work around pre-Windows-10 console incompatibilities: several
+# dependencies try to set console mode flags (ENABLE_VIRTUAL_TERMINAL_*)
+# that don't exist before Windows 10 and fail with ERROR_INVALID_PARAMETER
+# -- the documented, expected way Windows signals a down-level console (see
+# https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences).
+# They treat that as fatal instead of degrading gracefully. The build above
+# already pulled all of them into the module cache as ordinary dependencies;
+# copy each one, neutralize the specific failure, and rebuild against the
+# patched copies.
+function Patch-LegacyConsoleModule($modulePath, $parentRelPath, $nameFilter, $patchedName, $targetFile, $linePatternsToRemove, $chezmoiSrcDir) {
+    $cacheDir = Get-ChildItem -Path (Join-Path $env:GOPATH "pkg\mod\$parentRelPath") -Filter $nameFilter -ErrorAction SilentlyContinue |
+        Where-Object { $_.PSIsContainer } | Select-Object -Last 1
+    if (-not $cacheDir) {
+        Write-Host "info $modulePath not found in the module cache -- skipping its console compatibility patch"
+        return $false
     }
 
-    $replaceLine = "replace github.com/muesli/termenv => $($patchedTermenv -replace '\\', '/')"
-    Add-Content -Path (Join-Path $chezmoiSrcDir 'go.mod') -Value "`n$replaceLine"
+    $patchedDir = Join-Path $env:LOCALAPPDATA $patchedName
+    if (-not (Test-Path $patchedDir)) {
+        Write-Host "info patching $($cacheDir.Name) for pre-Windows-10 console compatibility"
+        Copy-Item -Recurse -Force $cacheDir.FullName $patchedDir
+        Get-ChildItem -Recurse $patchedDir | Where-Object { -not $_.PSIsContainer } | ForEach-Object { $_.IsReadOnly = $false }
 
-    Write-Host "info rebuilding chezmoi against the patched termenv"
+        $file = Join-Path $patchedDir $targetFile
+        $content = Get-Content $file
+        foreach ($pattern in $linePatternsToRemove) {
+            $content = $content | Where-Object { $_ -notmatch $pattern }
+        }
+        $content | Set-Content $file
+    } else {
+        Write-Debug "reusing existing patched $modulePath at $patchedDir"
+    }
+
+    $replaceLine = "replace $modulePath => $($patchedDir -replace '\\', '/')"
+    Add-Content -Path (Join-Path $chezmoiSrcDir 'go.mod') -Value "`n$replaceLine"
+    return $true
+}
+
+$patchedAny = $false
+
+# termenv: SetConsoleMode failure (output color/VT processing) is propagated
+# as a fatal error instead of degrading gracefully.
+if (Patch-LegacyConsoleModule 'github.com/muesli/termenv' 'github.com\muesli' 'termenv@*' 'termenv-patched' 'termenv_windows.go' @(
+        'err = fmt\.Errorf\("windows\.SetConsoleMode: %w", err2\)',
+        '^\s*"fmt"\s*$'
+    ) $chezmoiSrcDir) { $patchedAny = $true }
+
+# charmbracelet/x/term: makeRaw() additionally tries to set
+# ENABLE_VIRTUAL_TERMINAL_INPUT on top of the (Windows-7-compatible)
+# echo/line/processed-input flags it clears for raw mode.
+if (Patch-LegacyConsoleModule 'github.com/charmbracelet/x/term' 'github.com\charmbracelet\x' 'term@*' 'xterm-patched' 'term_windows.go' @(
+        'raw \|= windows\.ENABLE_VIRTUAL_TERMINAL_INPUT'
+    ) $chezmoiSrcDir) { $patchedAny = $true }
+
+# bubbletea: initInput() redundantly tries to set the same VT input flag
+# itself (independent of the term package above) and also sets the VT
+# output-processing flag, treating either failure as fatal.
+if (Patch-LegacyConsoleModule 'github.com/charmbracelet/bubbletea' 'github.com\charmbracelet' 'bubbletea@*' 'bubbletea-patched' 'tty_windows.go' @(
+        'return fmt\.Errorf\("error setting console mode: %w", err\)'
+    ) $chezmoiSrcDir) { $patchedAny = $true }
+
+if ($patchedAny) {
+    Write-Host "info rebuilding chezmoi against patched console-compatibility modules"
     Push-Location $chezmoiSrcDir
     try {
         & $goExe install .
@@ -381,11 +413,9 @@ if ($termenvCacheDir) {
         Pop-Location
     }
     if ($buildExitCode -ne 0) {
-        Write-Error "rebuild against patched termenv failed with exit code $buildExitCode" -ErrorAction Continue
+        Write-Error "rebuild against patched modules failed with exit code $buildExitCode" -ErrorAction Continue
         exit $buildExitCode
     }
-} else {
-    Write-Host "info termenv not found in the module cache -- skipping the SetConsoleMode compatibility patch (chezmoi.exe was still built normally)"
 }
 
 $chezmoiExe = Join-Path $BinDir 'chezmoi.exe'
@@ -394,6 +424,7 @@ if (-not (Test-Path $chezmoiExe)) {
     exit 1
 }
 Write-Host "info installed $chezmoiExe"
+
 
 Remove-Item -Recurse -Force -Path $tempDir -ErrorAction SilentlyContinue
 
