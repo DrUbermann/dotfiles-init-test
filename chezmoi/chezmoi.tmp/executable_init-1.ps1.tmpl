@@ -1,0 +1,102 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/bin/sh
+
+set -eu
+
+cd "$(cd "$(dirname "$0")" && pwd)"
+
+. ./.env
+
+[ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
+[ -n $LGR_LVL_FILE ] && export LGR_LVL_FILE
+
+
+chezmoi $LGR_LVL_CHEZMOI apply --include scripts
+
+chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
+
+#sudo apt -y install git
+
+## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
+#chezmoi $LGR_LVL_CHEZMOI git remote set-url origin "https://github.com/$REPO_OWNER/$REPO_DOTFILES.git"
+
+#chezmoi $LGR_LVL_CHEZMOI update
+
+
+#exec rm -vi ./* ./.env
+#exec rm -rf ./* ./.env
+#find . -mindepth 1 -print -delete
+# for _f in ./*; do
+#     printf "Delete '%s'? [y/N]: " "$_f" > /dev/tty
+#     read -r response < /dev/tty
+#     if [ "$response" = "y" ]; then
+#         rm -rf "$_f"
+#         printf "Deleted '%s'\n" "$_f"
+#     else
+#         printf "Skipped '%s'\n" "$_f"
+#     fi
+# done
+
+
+{{- else -}}
+#!/usr/bin/env pwsh
+
+Write-Output "Running 'executable_init-1.ps1.tmpl' as a powershell script." ############################################
+
+## Equivalent of set -eu
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+
+Set-Location $PSScriptRoot
+
+## Equivalent of . ./.env
+$EnvFile = ".env"
+if (Test-Path $EnvFile) {
+    Get-Content $EnvFile | ForEach-Object {
+        $line = $_.Trim()
+        if (-not $line -or $line.StartsWith("#")) { return }
+        if ($line -match '^export\s+(?<key>[^=]+)=(?<value>.*)$') {
+            $key   = $Matches['key'].Trim()
+            $value = $Matches['value'].Trim("'`"") -replace "'\\''", "'"
+            Set-Item "Env:$key" $value
+            Set-Variable -Name $key -Value $value -Force
+        }
+        elseif ($line -match '^(?<key>[^=]+)=(?<value>.*)$') {
+            $key   = $Matches['key'].Trim()
+            $value = $Matches['value'].Trim("'`"") -replace "'\\''", "'"
+            Set-Variable -Name $key -Value $value -Force
+        }
+    }
+} else {
+    Write-Warning "Could not find '${EnvFile}'."
+}
+
+if ((Test-Path variable:LGR_LVL_CNSL) -and ![string]::IsNullOrEmpty($LGR_LVL_CNSL)) { $Env:LGR_LVL_CNSL = $LGR_LVL_CNSL }
+if ((Test-Path variable:LGR_LVL_FILE) -and ![string]::IsNullOrEmpty($LGR_LVL_FILE)) { $Env:LGR_LVL_FILE = $LGR_LVL_FILE }
+
+
+chezmoi $LGR_LVL_CHEZMOI apply --include scripts
+
+chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
+
+## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
+#chezmoi $LGR_LVL_CHEZMOI git remote set-url origin "https://github.com/$REPO_OWNER/$REPO_DOTFILES.git"
+
+#chezmoi $LGR_LVL_CHEZMOI update
+
+
+Get-ChildItem | ForEach-Object {
+    $response = Read-Host "Delete '$($_.Name)'? [y/N]"
+    if ($response -eq 'y') {
+        Remove-Item $_.FullName -Recurse -Force
+        Write-Host "Deleted '$($_.Name)'"
+    } else {
+        Write-Host "Skipped '$($_.Name)'"
+    }
+}
+
+
+
+{{- end -}}
+
+{{- "" }}
