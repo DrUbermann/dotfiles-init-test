@@ -253,24 +253,52 @@ $client.DownloadFile($redirectUrl, (Join-Path $PWD "repo.zip"))
 ####
 
 #### Simpler version for PowerShell 5+
-Expand-Archive -Path "repo.zip" -DestinationPath "."
-#$inner = Get-ChildItem -Directory | Select-Object -First 1
-$inner = Get-ChildItem -Directory | Where-Object { $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
-Rename-Item $inner.FullName "cmn"
+# Expand-Archive -Path "repo.zip" -DestinationPath "."
+# #$inner = Get-ChildItem -Directory | Select-Object -First 1
+# $inner = Get-ChildItem -Directory | Where-Object { $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
+# Rename-Item $inner.FullName "cmn"
 ####
 
-#### Gemini 3.1 (2026-06)
-## Convert relative paths to Absolute Paths (Required for PS2 COM Object)
+#### Claude 4.6 (2026-06)
 $zipPath = Join-Path -Path $PWD.Path -ChildPath "repo.zip"
 $destPath = $PWD.Path
 $shell = New-Object -ComObject Shell.Application
 $zipNameSpace = $shell.NameSpace($zipPath)
 $destNameSpace = $shell.NameSpace($destPath)
 $destNameSpace.CopyHere($zipNameSpace.Items(), 1044)  ## The '1044' flag suppresses Windows progress dialogs and answers "Yes to All" for overwrites
-## Since CopyHere runs asynchronously we must pause briefly to give Windows time to finish writing the folder to disk, otherwise the next line will search before the folder exists.
-Start-Sleep -Seconds 10
+$expectedCount = $zipNameSpace.Items().Count
+$timeout = 120  # seconds
+$elapsed = 0
+$pollEvery = 2
+    while ($elapsed -lt $timeout) {
+        $inner = Get-ChildItem -Path $destPath | Where-Object { $_.PSIsContainer -and $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
+        if ($inner) {
+            ## Confirm the folder has the expected number of items before continuing
+            $innerCount = (Get-ChildItem -Path $inner.FullName -Recurse).Count
+            if ($innerCount -ge $expectedCount) { break }
+        }
+        Start-Sleep -Seconds $pollEvery
+        $elapsed += $pollEvery
+    }
+    if ($elapsed -ge $timeout) {
+        throw "Timed out waiting for zip extraction to complete."
+    }
 $inner = Get-ChildItem -Path $destPath | Where-Object { $_.PSIsContainer -and $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
 Rename-Item -Path $inner.FullName -NewName "cmn"
+####
+
+#### Gemini 3.1 (2026-06)
+### Convert relative paths to Absolute Paths (Required for PS2 COM Object)
+#$zipPath = Join-Path -Path $PWD.Path -ChildPath "repo.zip"
+#$destPath = $PWD.Path
+#$shell = New-Object -ComObject Shell.Application
+#$zipNameSpace = $shell.NameSpace($zipPath)
+#$destNameSpace = $shell.NameSpace($destPath)
+#$destNameSpace.CopyHere($zipNameSpace.Items(), 1044)  ## The '1044' flag suppresses Windows progress dialogs and answers "Yes to All" for overwrites
+### Since CopyHere runs asynchronously we must pause briefly to give Windows time to finish writing the folder to disk, otherwise the next line will search before the folder exists.
+#Start-Sleep -Seconds 10
+#$inner = Get-ChildItem -Path $destPath | Where-Object { $_.PSIsContainer -and $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
+#Rename-Item -Path $inner.FullName -NewName "cmn"
 ####
 {{ end }}
 
