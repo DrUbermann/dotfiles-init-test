@@ -62,5 +62,6 @@ $client.Headers.Add('Authorization', "Basic $Env:creds")
 
 }
 
+Write-Output "About to run powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$HOME\chezmoi.tmp\init.ps1`"" ###############################################
 #$Env:LGR_LVL_CNSL = 0
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HOME\chezmoi.tmp\init.ps1"
