@@ -151,7 +151,8 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 #$FPATH_SCRIPT = $PSCommandPath
-Set-Location $PSScriptRoot
+#Set-Location $PSScriptRoot  ## Simpler version for PowerShell 5+
+Set-Location (Split-Path -Parent $MyInvocation.MyCommand.Path)
 
 $REPO_OWNER = 'DrUbermann'
 $REPO_CMN = 'shell-common-test'
