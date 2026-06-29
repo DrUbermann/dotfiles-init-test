@@ -59,9 +59,9 @@ Write-Host 'after if ($PSVersionTable.CLRVersion.Major -lt 4)'
 $client = New-Object System.Net.WebClient
 $client.Headers.Add('Authorization', "Basic $Env:creds")
 & ([scriptblock]::Create($client.DownloadString('https://dotfiles-init-test.drubermann.workers.dev/.excu/chezmoi-install-legacy.ps1'))) init --apply $url_dotfiles
-
+Write-Host 'after init --apply'
 }
 
-Write-Output "About to run powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$HOME\chezmoi.tmp\init.ps1`"" ###############################################
+Write-Host "About to run powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$HOME\chezmoi.tmp\init.ps1`"" ###############################################
 #$Env:LGR_LVL_CNSL = 0
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HOME\chezmoi.tmp\init.ps1"
