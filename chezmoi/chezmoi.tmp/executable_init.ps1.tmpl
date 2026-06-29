@@ -268,7 +268,7 @@ $zipNameSpace = $shell.NameSpace($zipPath)
 $destNameSpace = $shell.NameSpace($destPath)
 $destNameSpace.CopyHere($zipNameSpace.Items(), 1044)  ## The '1044' flag suppresses Windows progress dialogs and answers "Yes to All" for overwrites
 ## Since CopyHere runs asynchronously we must pause briefly to give Windows time to finish writing the folder to disk, otherwise the next line will search before the folder exists.
-Start-Sleep -Seconds 4
+Start-Sleep -Seconds 10
 $inner = Get-ChildItem -Path $destPath | Where-Object { $_.PSIsContainer -and $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
 Rename-Item -Path $inner.FullName -NewName "cmn"
 ####

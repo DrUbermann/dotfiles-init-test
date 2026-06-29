@@ -351,7 +351,7 @@ if ($buildExitCode -ne 0) {
 # already pulled all of them into the module cache as ordinary dependencies;
 # copy each one, neutralize the specific failure, and rebuild against the
 # patched copies.
-function Patch-LegacyConsoleModule($modulePath, $parentRelPath, $nameFilter, $patchedName, $targetFile, $linePatternsToRemove, $chezmoiSrcDir) {
+function Update-LegacyConsoleModule($modulePath, $parentRelPath, $nameFilter, $patchedName, $targetFile, $linePatternsToRemove, $chezmoiSrcDir) {
     $cacheDir = Get-ChildItem -Path (Join-Path $env:GOPATH "pkg\mod\$parentRelPath") -Filter $nameFilter -ErrorAction SilentlyContinue |
         Where-Object { $_.PSIsContainer } | Select-Object -Last 1
     if (-not $cacheDir) {
@@ -384,7 +384,7 @@ $patchedAny = $false
 
 # termenv: SetConsoleMode failure (output color/VT processing) is propagated
 # as a fatal error instead of degrading gracefully.
-if (Patch-LegacyConsoleModule 'github.com/muesli/termenv' 'github.com\muesli' 'termenv@*' 'termenv-patched' 'termenv_windows.go' @(
+if (Update-LegacyConsoleModule 'github.com/muesli/termenv' 'github.com\muesli' 'termenv@*' 'termenv-patched' 'termenv_windows.go' @(
         'err = fmt\.Errorf\("windows\.SetConsoleMode: %w", err2\)',
         '^\s*"fmt"\s*$'
     ) $chezmoiSrcDir) { $patchedAny = $true }
@@ -392,14 +392,14 @@ if (Patch-LegacyConsoleModule 'github.com/muesli/termenv' 'github.com\muesli' 't
 # charmbracelet/x/term: makeRaw() additionally tries to set
 # ENABLE_VIRTUAL_TERMINAL_INPUT on top of the (Windows-7-compatible)
 # echo/line/processed-input flags it clears for raw mode.
-if (Patch-LegacyConsoleModule 'github.com/charmbracelet/x/term' 'github.com\charmbracelet\x' 'term@*' 'xterm-patched' 'term_windows.go' @(
+if (Update-LegacyConsoleModule 'github.com/charmbracelet/x/term' 'github.com\charmbracelet\x' 'term@*' 'xterm-patched' 'term_windows.go' @(
         'raw \|= windows\.ENABLE_VIRTUAL_TERMINAL_INPUT'
     ) $chezmoiSrcDir) { $patchedAny = $true }
 
 # bubbletea: initInput() redundantly tries to set the same VT input flag
 # itself (independent of the term package above) and also sets the VT
 # output-processing flag, treating either failure as fatal.
-if (Patch-LegacyConsoleModule 'github.com/charmbracelet/bubbletea' 'github.com\charmbracelet' 'bubbletea@*' 'bubbletea-patched' 'tty_windows.go' @(
+if (Update-LegacyConsoleModule 'github.com/charmbracelet/bubbletea' 'github.com\charmbracelet' 'bubbletea@*' 'bubbletea-patched' 'tty_windows.go' @(
         'return fmt\.Errorf\("error setting console mode: %w", err\)'
     ) $chezmoiSrcDir) { $patchedAny = $true }
 

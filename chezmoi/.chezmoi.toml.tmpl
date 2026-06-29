@@ -9,10 +9,17 @@
 {{- $ephem := true -}}  {{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
 {{- $headless := true -}}  {{/* true if this machine does not have a screen and keyboard */}}
 
+
+#### temporarily change defaults to avoid multiple selection queries
+{{- $ephem = true -}}
+{{- $headless = false -}}
+####
+
+
 {{- if stdinIsATTY -}}
 {{-   $interactive = promptBoolOnce . "interactive" "interactive" true -}}
-{{-   $ephem = promptBoolOnce . "ephem" "ephemeral" true -}}
-{{-   $headless = promptBoolOnce . "headless" "headless" false -}}
+#{-   $ephem = promptBoolOnce . "ephem" "ephemeral" true -}}
+#{-   $headless = promptBoolOnce . "headless" "headless" false -}}
 {{- end -}}
 
 {{- "" }}
