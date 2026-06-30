@@ -232,7 +232,7 @@ Get-ChildItem -Recurse -Force cmn/.git | Remove-Item -Recurse -Force ; Remove-It
 Compress-Archive -Path cmn/* -DestinationPath repo.zip
 {{ else }}
 
-#Invoke-WebRequest -UseBasicParsing -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_CMN/zipball/master" -Headers @{ Authorization = "Bearer $GITHUB_PAT" } -OutFile (Join-Path $PWD "repo.zip")
+Invoke-WebRequest -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_CMN/zipball/master" -Headers @{ Authorization = "Bearer $GITHUB_PAT" } -OutFile (Join-Path $PWD "repo.zip")
 
 #Expand-Archive -Path "repo.zip" -DestinationPath "."
 ##$inner = Get-ChildItem -Directory | Select-Object -First 1
@@ -241,7 +241,7 @@ Compress-Archive -Path cmn/* -DestinationPath repo.zip
 
 {{ end }}
 
-#Invoke-Expression "&{$(Invoke-WebRequest 'https://get.chezmoi.io/ps1')} -b "$HOME\.local\bin"
+Invoke-Expression "&{$(Invoke-WebRequest 'https://get.chezmoi.io/ps1')} -b "$HOME\.local\bin"
 
 New-Item -Path {{ osDir .chezmoi.configFile | quote }} -ItemType Directory -Force | Out-Null
 if ($PSVersionTable.PSVersion.Major -ge 5) {
