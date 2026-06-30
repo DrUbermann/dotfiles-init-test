@@ -241,7 +241,7 @@ Rename-Item $inner.FullName "cmn"
 
 {{ end }}
 
-Invoke-Expression "&{$(Invoke-WebRequest 'https://get.chezmoi.io/ps1')} -b "$HOME\.local\bin"
+Invoke-Expression "&{$(Invoke-WebRequest 'https://get.chezmoi.io/ps1')}" -b "$HOME\.local\bin"
 
 New-Item -Path {{ osDir .chezmoi.configFile | quote }} -ItemType Directory -Force | Out-Null
 if ($PSVersionTable.PSVersion.Major -ge 5) {
