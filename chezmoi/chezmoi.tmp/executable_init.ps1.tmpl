@@ -138,7 +138,7 @@ exit 0
 {{- else -}}
 #!/usr/bin/env pwsh
 
-Write-Output "Running 'executable_init.ps1.tmpl' as a powershell script."
+Write-Output "Running 'executable_init.ps1.tmpl' as a powershell script."  #############################################################
 
 try {
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
@@ -151,8 +151,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 #$FPATH_SCRIPT = $PSCommandPath
-#Set-Location $PSScriptRoot  ## Simpler version for PowerShell 5+
-Set-Location (Split-Path -Parent $MyInvocation.MyCommand.Path)
+Set-Location $PSScriptRoot
 
 $REPO_OWNER = 'DrUbermann'
 $REPO_CMN = 'shell-common-test'
@@ -227,83 +226,22 @@ $a = @(
 Move-Item {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config" | quote }} "./gitconfig"
 (Get-Content "./gitconfig") -replace '^(\s*url\s*=\s*https://)[A-Za-z0-9_-]*@', '$1' | Set-Content {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".git" "config" | quote }}
 
-## Use integer value for TLS 1.2 to support .NET 4.0
-#[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]3072
-
 {{ if lookPath "git" }}
 git clone --depth 1 "https://github.com/$REPO_OWNER/$REPO_CMN" cmn
 Get-ChildItem -Recurse -Force cmn/.git | Remove-Item -Recurse -Force ; Remove-Item -Force cmn/.git
 Compress-Archive -Path cmn/* -DestinationPath repo.zip
 {{ else }}
-#### Simpler version for PowerShell 5+
-# Invoke-WebRequest -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_CMN/zipball/master" -Headers @{ Authorization = "Bearer $GITHUB_PAT" } -OutFile (Join-Path $PWD "repo.zip")
-####
 
-####
-$request = [System.Net.HttpWebRequest]::Create("https://api.github.com/repos/$REPO_OWNER/$REPO_CMN/zipball/master")
-$request.Method = "GET"
-$request.Headers.Add("Authorization", "Bearer $GITHUB_PAT")
-$request.UserAgent = "PowerShell"
-$request.AllowAutoRedirect = $false
-$response = $request.GetResponse()
-$redirectUrl = $response.Headers["Location"]
-$response.Close()
-$client = New-Object System.Net.WebClient
-$client.Headers.Add("User-Agent", "PowerShell")
-$client.DownloadFile($redirectUrl, (Join-Path $PWD "repo.zip"))
-####
+Invoke-WebRequest -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_CMN/zipball/master" -Headers @{ Authorization = "Bearer $GITHUB_PAT" } -OutFile (Join-Path $PWD "repo.zip")
 
-#### Simpler version for PowerShell 5+
-# Expand-Archive -Path "repo.zip" -DestinationPath "."
-# #$inner = Get-ChildItem -Directory | Select-Object -First 1
-# $inner = Get-ChildItem -Directory | Where-Object { $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
-# Rename-Item $inner.FullName "cmn"
-####
+Expand-Archive -Path "repo.zip" -DestinationPath "."
+#$inner = Get-ChildItem -Directory | Select-Object -First 1
+$inner = Get-ChildItem -Directory | Where-Object { $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
+Rename-Item $inner.FullName "cmn"
 
-#### Claude 4.6 (2026-06)
-$zipPath = Join-Path -Path $PWD.Path -ChildPath "repo.zip"
-$destPath = $PWD.Path
-$shell = New-Object -ComObject Shell.Application
-$zipNameSpace = $shell.NameSpace($zipPath)
-$destNameSpace = $shell.NameSpace($destPath)
-$destNameSpace.CopyHere($zipNameSpace.Items(), 1044)  ## The '1044' flag suppresses Windows progress dialogs and answers "Yes to All" for overwrites
-$expectedCount = $zipNameSpace.Items().Count
-$timeout = 120  # seconds
-$elapsed = 0
-$pollEvery = 2
-    while ($elapsed -lt $timeout) {
-        $inner = Get-ChildItem -Path $destPath | Where-Object { $_.PSIsContainer -and $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
-        if ($inner) {
-            ## Confirm the folder has the expected number of items before continuing
-            $innerCount = (Get-ChildItem -Path $inner.FullName -Recurse).Count
-            if ($innerCount -ge $expectedCount) { break }
-        }
-        Start-Sleep -Seconds $pollEvery
-        $elapsed += $pollEvery
-    }
-    if ($elapsed -ge $timeout) {
-        throw "Timed out waiting for zip extraction to complete."
-    }
-$inner = Get-ChildItem -Path $destPath | Where-Object { $_.PSIsContainer -and $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
-Rename-Item -Path $inner.FullName -NewName "cmn"
-####
-
-#### Gemini 3.1 (2026-06)
-### Convert relative paths to Absolute Paths (Required for PS2 COM Object)
-#$zipPath = Join-Path -Path $PWD.Path -ChildPath "repo.zip"
-#$destPath = $PWD.Path
-#$shell = New-Object -ComObject Shell.Application
-#$zipNameSpace = $shell.NameSpace($zipPath)
-#$destNameSpace = $shell.NameSpace($destPath)
-#$destNameSpace.CopyHere($zipNameSpace.Items(), 1044)  ## The '1044' flag suppresses Windows progress dialogs and answers "Yes to All" for overwrites
-### Since CopyHere runs asynchronously we must pause briefly to give Windows time to finish writing the folder to disk, otherwise the next line will search before the folder exists.
-#Start-Sleep -Seconds 10
-#$inner = Get-ChildItem -Path $destPath | Where-Object { $_.PSIsContainer -and $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
-#Rename-Item -Path $inner.FullName -NewName "cmn"
-####
 {{ end }}
 
-& ([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString("https://get.chezmoi.io/ps1"))) -b "$HOME\.local\bin"
+Invoke-Expression "&{$(Invoke-WebRequest 'https://get.chezmoi.io/ps1')} -b "$HOME\.local\bin"
 
 New-Item -Path {{ osDir .chezmoi.configFile | quote }} -ItemType Directory -Force | Out-Null
 if ($PSVersionTable.PSVersion.Major -ge 5) {
@@ -347,18 +285,6 @@ $envNames = (Get-ChildItem Env:).Name
 $lines  = Get-ChildItem Env: | Where-Object { $_.Name -match '^LGR_' } | ForEach-Object { "export $($_.Name)='$($_.Value -replace "'", "'\''")'" }
 $lines += Get-ChildItem Variable: | Where-Object { $_.Name -match '^LGR_' -and $envNames -notcontains $_.Name } | ForEach-Object { "$($_.Name)='$([string]$_.Value -replace "'", "'\''")'" }
 [System.IO.File]::AppendAllText((Join-Path $PWD.Path ".env"), ($lines -join "`n") + "`n")
-
-#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("export Path='$Env:Path'"))
-#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("export GIT_ASKPASS='$Env:GIT_ASKPASS'"))
-#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("export GITHUB_PAT='$Env:GITHUB_PAT'"))
-#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("REPO_OWNER='$REPO_OWNER'"))
-#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("REPO_CMN='$REPO_CMN'"))
-#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("REPO_DOTFILES='$REPO_DOTFILES'"))
-#[System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]@("LGR_LVL_CHEZMOI='$LGR_LVL_CHEZMOI'"))
-#Get-ChildItem Env: | Where-Object { $_.Name -match '^LGR_' } | ForEach-Object {
-#    $escaped = $_.Value -replace "'", "'\''"
-#    [System.IO.File]::AppendAllLines((Join-Path $PWD.Path ".env"), [string[]]"$($_.Name)='$escaped'")
-#}
 
 $PSCommandPath_1 = $PSCommandPath -replace '\.ps1$', '-1.ps1'
 if ($proc.ExitCode -eq 3) {

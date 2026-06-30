@@ -13,73 +13,64 @@ elif command -v openssl >/dev/null 2>&1; then
     _cmd="ssl_get -q -o -"
     #### Create fake wget so get.chezmoi.io script will use ssl_get instead
     #### Source: Gemini 3.1
-mkdir -p "${TMPDIR:-/tmp}/fakepath"
+    mkdir -p "${TMPDIR:-/tmp}/fakepath"
     cat << 'EOF' > "${TMPDIR:-/tmp}/fakepath/wget"
-#!/bin/sh
-
-## Ensure the parent's environment variable is available
-eval "$SSL_GET_DEF"
-
-hcount=0
-out=""
-url=""
-quiet=""
-
-## Robustly parse standard and squished wget arguments
-while [ "$#" -gt 0 ]; do
-    case "$1" in
-        (-q|--quiet)
-            quiet="-q"; shift ;;
-        (-S|--server-response) 
-            shift ;;
-        (-O) 
-            out="$2"; shift 2 ;;
-        (-qO) 
-            quiet="-q"; out="$2"; shift 2 ;;
-        (-O*) 
-            out="${1#*-O}"; shift ;;
-        (-qO*) 
-            quiet="-q"; out="${1#*-qO}"; shift ;;
-        (--header)
-            hcount=$((hcount + 1))
-            eval "h${hcount}=\"\$2\""
-            shift 2 ;;
-        (--header=*)
-            hcount=$((hcount + 1))
-            eval "h${hcount}=\"\${1#*=}\""
-            shift ;;
-        (-*) 
-            ## Ignore any other wget flags
-            shift ;;
-        (*) 
-            url="$1"; shift ;;
-    esac
-done
-
-## Safely reconstruct the arguments for ssl_get using positionals
-set --
-
-if [ -n "$quiet" ]; then
-    set -- "$@" "$quiet"
-fi
-
-if [ -n "$out" ]; then
-    set -- "$@" "-o" "$out"
-fi
-
-## Re-inject the parsed headers
-i=1
-while [ "$i" -le "$hcount" ]; do
-    eval "val=\"\$h${i}\""
-    set -- "$@" "--header" "$val"
-    i=$((i + 1))
-done
-
-if [ -n "$url" ]; then
-    set -- "$@" "$url"
-fi
-
-ssl_get "$@"
+    #!/bin/sh
+    ## Ensure the parent's environment variable is available
+    eval "$SSL_GET_DEF"
+    hcount=0
+    out=""
+    url=""
+    quiet=""
+    ## Robustly parse standard and squished wget arguments
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            (-q|--quiet)
+                quiet="-q"; shift ;;
+            (-S|--server-response) 
+                shift ;;
+            (-O) 
+                out="$2"; shift 2 ;;
+            (-qO) 
+                quiet="-q"; out="$2"; shift 2 ;;
+            (-O*) 
+                out="${1#*-O}"; shift ;;
+            (-qO*) 
+                quiet="-q"; out="${1#*-qO}"; shift ;;
+            (--header)
+                hcount=$((hcount + 1))
+                eval "h${hcount}=\"\$2\""
+                shift 2 ;;
+            (--header=*)
+                hcount=$((hcount + 1))
+                eval "h${hcount}=\"\${1#*=}\""
+                shift ;;
+            (-*) 
+                ## Ignore any other wget flags
+                shift ;;
+            (*) 
+                url="$1"; shift ;;
+        esac
+    done
+    ## Safely reconstruct the arguments for ssl_get using positionals
+    set --
+    if [ -n "$quiet" ]; then
+        set -- "$@" "$quiet"
+    fi
+    if [ -n "$out" ]; then
+        set -- "$@" "-o" "$out"
+    fi
+    ## Re-inject the parsed headers
+    i=1
+    while [ "$i" -le "$hcount" ]; do
+        eval "val=\"\$h${i}\""
+        set -- "$@" "--header" "$val"
+        i=$((i + 1))
+    done
+    if [ -n "$url" ]; then
+        set -- "$@" "$url"
+    fi
+    ssl_get "$@"
 EOF
     chmod +x "${TMPDIR:-/tmp}/fakepath/wget"
     export PATH="${TMPDIR:-/tmp}/fakepath:$PATH"
