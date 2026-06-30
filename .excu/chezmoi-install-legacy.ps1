@@ -434,7 +434,7 @@ if ($ChezmoiArgs -and $ChezmoiArgs.Count -gt 0) {
     & $chezmoiExe @ChezmoiArgs
 
 
-    Write-Host 'after running chezmoi-install-legacy chezmoi.exe chezmoi_args'
+    Write-Host "after running chezmoi-install-legacy chezmoi.exe chezmoi_args, LASTEXITCODE = $LASTEXITCODE"
 
 
 
