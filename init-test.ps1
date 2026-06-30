@@ -48,10 +48,8 @@ foreach (`$path in `$paths) {
     Remove-Item $tmpScript -ErrorAction SilentlyContinue
 
     $script = $MyInvocation.MyCommand.Path
-    Write-Host "script = $script"
     $proc = Start-Process powershell.exe -PassThru -ArgumentList "-NoExit", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "$script"
     Start-Sleep -Seconds 10
-    Write-Host "completed $script"
     exit
 }
 
@@ -62,6 +60,5 @@ $client.Headers.Add('Authorization', "Basic $Env:creds")
 Write-Host 'after init --apply'
 }
 
-Write-Host "About to run powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$HOME\chezmoi.tmp\init.ps1`"" ###############################################
 #$Env:LGR_LVL_CNSL = 0
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HOME\chezmoi.tmp\init.ps1"
