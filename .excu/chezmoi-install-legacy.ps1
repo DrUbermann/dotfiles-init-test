@@ -432,12 +432,7 @@ Remove-Item -Recurse -Force -Path $tempDir -ErrorAction SilentlyContinue
 if ($ChezmoiArgs -and $ChezmoiArgs.Count -gt 0) {
     Write-Debug "executing: $chezmoiExe $ChezmoiArgs"
     & $chezmoiExe @ChezmoiArgs
-
-
-    Write-Host "after running chezmoi-install-legacy chezmoi.exe chezmoi_args, LASTEXITCODE = $LASTEXITCODE"
-
-
-
-
-    exit $LASTEXITCODE
+    if ($LASTEXITCODE -ne 0) {
+        throw "$chezmoiExe exited with code $LASTEXITCODE"
+    }
 }
