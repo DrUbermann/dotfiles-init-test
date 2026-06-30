@@ -234,10 +234,10 @@ Compress-Archive -Path cmn/* -DestinationPath repo.zip
 
 Invoke-WebRequest -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_CMN/zipball/master" -Headers @{ Authorization = "Bearer $GITHUB_PAT" } -OutFile (Join-Path $PWD "repo.zip")
 
-#Expand-Archive -Path "repo.zip" -DestinationPath "."
-##$inner = Get-ChildItem -Directory | Select-Object -First 1
-#$inner = Get-ChildItem -Directory | Where-Object { $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
-#Rename-Item $inner.FullName "cmn"
+Expand-Archive -Path "repo.zip" -DestinationPath "."
+#$inner = Get-ChildItem -Directory | Select-Object -First 1
+$inner = Get-ChildItem -Directory | Where-Object { $_.Name -like "*$REPO_CMN-*" } | Select-Object -First 1
+Rename-Item $inner.FullName "cmn"
 
 {{ end }}
 
