@@ -3,8 +3,8 @@
 Write-Output "Starting init-test.ps1" ###############################################
 
 ## Equivalent of set -eu
-#$ErrorActionPreference = 'Stop'
-#Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
 
 if ((New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Warning "Running as Administrator is not required, exiting."
@@ -45,7 +45,7 @@ foreach (`$path in `$paths) {
     $proc = Start-Process powershell.exe -Verb RunAs -PassThru -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "$tmpScript" -WindowStyle Hidden
     $proc.WaitForExit()
     Write-Host "completed $tmpScript"
-    #Remove-Item $tmpScript -ErrorAction SilentlyContinue
+    Remove-Item $tmpScript -ErrorAction SilentlyContinue
 
     $script = $MyInvocation.MyCommand.Path
     Write-Host "script = $script"
@@ -58,7 +58,7 @@ foreach (`$path in `$paths) {
 Write-Host 'after if ($PSVersionTable.CLRVersion.Major -lt 4)'
 $client = New-Object System.Net.WebClient
 $client.Headers.Add('Authorization', "Basic $Env:creds")
-& ([scriptblock]::Create($client.DownloadString('https://dotfiles-init-test.drubermann.workers.dev/.excu/chezmoi-install-legacy.ps1'))) #init --apply $url_dotfiles
+& ([scriptblock]::Create($client.DownloadString('https://dotfiles-init-test.drubermann.workers.dev/.excu/chezmoi-install-legacy.ps1'))) init --apply $url_dotfiles
 Write-Host 'after init --apply'
 }
 
