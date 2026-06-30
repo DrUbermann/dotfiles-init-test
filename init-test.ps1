@@ -5,7 +5,7 @@ Write-Output "Starting init-test.ps1" ##########################################
 ## Equivalent of set -eu
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-exit
+
 if ((New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Warning "Running as Administrator is not required, exiting."
     exit 1
