@@ -15,3 +15,4 @@ $creds = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(":$password"))
 $url = 'https://dotfiles-init-test.drubermann.workers.dev/init-test.ps1'
 
 Invoke-Expression (Invoke-WebRequest -Uri $url -Headers @{ Authorization = "Basic $creds" }).Content
+echo here
