@@ -12,7 +12,7 @@ elif command -v openssl >/dev/null 2>&1; then
     eval "$SSL_GET_DEF"
     _cmd="ssl_get -q -o -"
     #### Create fake wget so get.chezmoi.io script will use ssl_get instead
-    #### Source: Gemini 3.1
+    #### Source: Gemini 3.1 Pro
     mkdir -p "${TMPDIR:-/tmp}/fakepath"
     cat << 'EOF' > "${TMPDIR:-/tmp}/fakepath/wget"
     #!/bin/sh
