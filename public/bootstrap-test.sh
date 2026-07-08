@@ -7,6 +7,7 @@ if ! tty > /dev/null 2>&1; then
     printf '%s\n' "Error: no controlling terminal for user inputs." >&2
     exit 1
 fi
+printf '%s\n' "Requesting bootstrap password to access preliminary Chezmoi git repo:"
 printf '\nPassword: ' > /dev/tty
 stty -echo < /dev/tty
 trap 'stty echo < /dev/tty' EXIT INT TERM
