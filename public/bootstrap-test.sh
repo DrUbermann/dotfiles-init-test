@@ -8,7 +8,7 @@ if ! tty > /dev/null 2>&1; then
     exit 1
 fi
 printf '%s\n' "Requesting bootstrap password to access preliminary Chezmoi git repo:"
-printf '\nPassword: ' > /dev/tty
+printf 'Password: ' > /dev/tty
 stty -echo < /dev/tty
 trap 'stty echo < /dev/tty' EXIT INT TERM
 read -r _password < /dev/tty
@@ -18,9 +18,9 @@ printf '\n' > /dev/tty
 _creds=$(printf ':%s' "$_password" | openssl enc -base64 | tr -d '\n')
 _url="https://dotfiles-init-test.drubermann.workers.dev/init-test.sh"
 
-if command -v curl_aaaaa >/dev/null 2>&1; then
+if command -v curl_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa >/dev/null 2>&1; then
     _cmd="curl -fsLS -o -"
-elif command -v wget_aaaaa >/dev/null 2>&1; then
+elif command -v wget_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa >/dev/null 2>&1; then
     _cmd="wget -q -O -"
 elif command -v openssl >/dev/null 2>&1; then
     SSL_GET_DEF=$(cat << 'EOF'
