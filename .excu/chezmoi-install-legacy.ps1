@@ -1,4 +1,4 @@
-#### Source: Claude 4.6 (2026-06)
+#### Source: Claude Sonnet 4.6 (2026-06)
 
 <#
 .SYNOPSIS
