@@ -177,5 +177,6 @@ else
     printf 'None of curl or wget or openssl found.\n'
     exit 1
 fi
-
+echo here
 sh -c "$($_cmd --header "Authorization: Basic $_creds" "$_url")" sh "$@"
+echo here2

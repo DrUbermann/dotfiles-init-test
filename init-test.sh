@@ -78,7 +78,7 @@ else
     printf 'None of curl or wget or openssl found.\n'
     exit 1
 fi
-echo here
+
 cd "$HOME" || exit 1
 
 sh -c "$($_cmd https://get.chezmoi.io)" sh init --apply https://github.com/DrUbermann/dotfiles-init-test.git
