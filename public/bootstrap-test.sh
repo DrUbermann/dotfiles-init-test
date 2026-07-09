@@ -15,7 +15,14 @@ read -r _password < /dev/tty
 stty echo < /dev/tty
 printf '\n' > /dev/tty
 
-_creds=$(printf ':%s' "$_password" | openssl enc -base64 | tr -d '\n')
+if command -v base64 >/dev/null 2>&1; then
+    _creds=$(printf ':%s' "$_password" | base64 | tr -d '\n')
+elif command -v openssl >/dev/null 2>&1; then
+    _creds=$(printf ':%s' "$_password" | openssl enc -base64 | tr -d '\n')
+else
+    printf 'No base64 encoder found.\n'
+    exit 1
+fi
 _url="https://dotfiles-init-test.drubermann.workers.dev/init-test.sh"
 
 if command -v curl_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa >/dev/null 2>&1; then
@@ -177,7 +184,5 @@ else
     printf 'None of curl or wget or openssl found.\n'
     exit 1
 fi
-echo "$_creds"
-echo "$_url"
+
 sh -c "$($_cmd --header "Authorization: Basic $_creds" "$_url")" sh "$@"
-echo here2
