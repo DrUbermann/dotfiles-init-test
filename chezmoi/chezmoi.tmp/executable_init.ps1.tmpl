@@ -103,9 +103,9 @@ chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 ## Install sudo or doas if not running as root
 if [ "$(id -u)" -ne 0 ] && ! command -v sudo >/dev/null 2>&1 && ! command -v doas >/dev/null 2>&1; then
     if [ $(uname -s) = OpenBSD ] || [ -f /etc/alpine-release ]; then
-        {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install_packages.sh doas
+        {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install-packages.sh doas
     else
-        {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install_packages.sh sudo       
+        {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install-packages.sh sudo       
     fi
 fi
 
