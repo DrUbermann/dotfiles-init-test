@@ -105,7 +105,9 @@ if [ "$(id -u)" -ne 0 ] && ! command -v sudo >/dev/null 2>&1 && ! command -v doa
     _s=0 ; {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install-packages.sh sudo || _s=$?
     echo executable_init _s = $_s
     case $_s in (0) : ;; (2) printf '%s\n' "No 'sudo' package found; trying doas." ;; (*) printf '%s\n' "Error '$_s' in installation."; exit $_s ;; esac
-    [ $_s = 2 ] && _s=0 ; {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install-packages.sh doas || _s=$?
+    [ $_s -eq 2 ] && echo s is 2
+    [ $_s -eq 0 ] && echo s is 0
+    [ $_s -eq 2 ] && { _s=0 ; {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install-packages.sh doas || _s=$? ; }
     case $_s in (0) : ;; (2) printf '%s\n' "No 'doas' package found." ;; (*) printf '%s\n' "Error '$_s' in installation."; exit $_s ;; esac
 fi
 
