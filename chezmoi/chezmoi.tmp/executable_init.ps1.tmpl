@@ -104,13 +104,8 @@ chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 if [ "$(id -u)" -ne 0 ] && ! command -v sudo >/dev/null 2>&1 && ! command -v doas >/dev/null 2>&1; then
     _s=0 ; {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install-packages.sh sudo || _s=$?
     case $_s in (0) : ;; (2) printf '%s\n' "No 'sudo' package found; trying doas." ;; (*) printf '%s\n' "Error '$_s' in installation."; exit $_s ;; esac
-    [ $_ = 2 ] && _s=0 ; {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install-packages.sh doas || _s=$?
+    [ $_s = 2 ] && _s=0 ; {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install-packages.sh doas || _s=$?
     case $_s in (0) : ;; (2) printf '%s\n' "No 'doas' package found." ;; (*) printf '%s\n' "Error '$_s' in installation."; exit $_s ;; esac
-    #if [ $(uname -s) = OpenBSD ] || [ -f /etc/alpine-release ]; then
-    #    {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install-packages.sh doas
-    #else
-    #    {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install-packages.sh sudo       
-    #fi
 fi
 
 x=0 && {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" "grant_privileged_access.sh" | quote }} || x=$?
