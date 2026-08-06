@@ -1,12 +1,12 @@
 {{- if ne .chezmoi.os "windows" -}}
 #!/bin/sh
-echo init-1 start
+
 set -eu
 
 cd "$(cd "$(dirname "$0")" && pwd)"
 
 . ./.env
-echo init-1 after env
+
 [ -n $LGR_LVL_CNSL ] && export LGR_LVL_CNSL
 [ -n $LGR_LVL_FILE ] && export LGR_LVL_FILE
 
@@ -37,7 +37,7 @@ chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)
 #     fi
 # done
 
-echo init-1 end
+
 {{- else -}}
 #!/usr/bin/env pwsh
 
