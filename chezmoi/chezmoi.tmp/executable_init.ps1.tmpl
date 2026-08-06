@@ -108,7 +108,7 @@ if [ "$(id -u)" -ne 0 ] && ! command -v sudo >/dev/null 2>&1 && ! command -v doa
     case $_s in (0) : ;; (2) printf '%s\n' "No 'doas' package found." ;; (*) printf '%s\n' "Error '$_s' in installation."; exit $_s ;; esac
 fi
 
-x=0 && {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" "grant_privileged_access.sh" | quote }} || x=$?
+x=0 && {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" "grant-privileged-access.sh" | quote }} || x=$?
 
 ## Variables used in next part of script
 printf "export PATH='%s'\n" "$(printf '%s' "$PATH" | sed "s/'/'\\\\''/g")" >> ./.env
@@ -270,7 +270,7 @@ chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 
 [void](New-Object -ComObject Wscript.Shell).Popup("This script needs to enable several settings that require elevated privileges.`n`nPlease click 'Yes' on the administrator prompt that is about to appear.", 0x00, "Privilege Escalation Required", 0x40)  ## 0x40 = Information icon
 #$proc = Start-Process powershell.exe -Verb RunAs -ArgumentList "-File $HOME/chezmoi.tmp/init-0.ps1" -WindowStyle Hidden -Wait -PassThru
-$proc = Start-Process powershell.exe -Verb RunAs -ArgumentList @("-ExecutionPolicy Bypass", "-NoProfile", "-NonInteractive", "-File", "{{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" "grant_privileged_access.ps1" }}") -WindowStyle Hidden -Wait -PassThru
+$proc = Start-Process powershell.exe -Verb RunAs -ArgumentList @("-ExecutionPolicy Bypass", "-NoProfile", "-NonInteractive", "-File", "{{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" "grant-privileged-access.ps1" }}") -WindowStyle Hidden -Wait -PassThru
 
 ## Variables used in next part of script
 [System.IO.File]::AppendAllText((Join-Path $PWD.Path ".env"), "export Path='$($Env:Path -replace "'", "'\''")'" + "`n")
