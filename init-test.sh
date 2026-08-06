@@ -6,7 +6,7 @@ printf '%s\n' "Starting init-test.sh" ##########################################
 
 if command -v curl_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa >/dev/null 2>&1; then
     _cmd="curl -fsLS -o -"
-elif command -v wget >/dev/null 2>&1; then
+elif command -v wget_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa >/dev/null 2>&1; then
     _cmd="wget -q -O -"
 elif command -v openssl >/dev/null 2>&1; then
     eval "$SSL_GET_DEF"
