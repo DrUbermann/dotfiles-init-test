@@ -18,9 +18,9 @@ chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)
 #sudo apt -y install git
 
 ## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
-#chezmoi $LGR_LVL_CHEZMOI git remote set-url origin "https://github.com/$REPO_OWNER/$REPO_DOTFILES.git"
+chezmoi $LGR_LVL_CHEZMOI git remote set-url origin "https://github.com/$REPO_OWNER/$REPO_DOTFILES.git"
 
-#chezmoi $LGR_LVL_CHEZMOI update
+chezmoi $LGR_LVL_CHEZMOI update
 
 
 #exec rm -vi ./* ./.env
