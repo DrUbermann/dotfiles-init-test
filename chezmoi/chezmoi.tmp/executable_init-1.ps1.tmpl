@@ -15,10 +15,12 @@ chezmoi $LGR_LVL_CHEZMOI apply --include scripts
 
 chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
 
-#sudo apt -y install git
-
 ## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
-chezmoi $LGR_LVL_CHEZMOI git remote set-url origin "https://github.com/$REPO_OWNER/$REPO_DOTFILES.git"
+if command -v git >/dev/null 2>&1; then
+    chezmoi $LGR_LVL_CHEZMOI git remote set-url origin "https://github.com/$REPO_OWNER/$REPO_DOTFILES.git"
+else
+    printf '%s\n' "Warning: git not available.  Remove url with GITHUB_PAT from '~/.local/share/chezmoi_src/.git/config'." >&2
+fi
 
 chezmoi $LGR_LVL_CHEZMOI update
 
@@ -26,7 +28,8 @@ chezmoi $LGR_LVL_CHEZMOI update
 #exec rm -vi ./* ./.env
 #exec rm -rf ./* ./.env
 #find . -mindepth 1 -print -delete
-# for _f in ./*; do
+# for _f in ./* ./.[!.]* ./..?*; do
+#     [ -e "$_f" ] || [ -L "$_f" ] || continue  ## skip unmatched literal glob patterns
 #     printf "Delete '%s'? [y/N]: " "$_f" > /dev/tty
 #     read -r response < /dev/tty
 #     if [ "$response" = "y" ]; then
