@@ -22,7 +22,7 @@ else
     printf '%s\n' "Warning: git not available.  Remove url with GITHUB_PAT from '~/.local/share/chezmoi_src/.git/config'." >&2
 fi
 
-chezmoi $LGR_LVL_CHEZMOI update
+chezmoi $LGR_LVL_CHEZMOI update --exclude=encrypted
 
 
 #exec rm -vi ./* ./.env
