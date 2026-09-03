@@ -15,12 +15,13 @@ chezmoi $LGR_LVL_CHEZMOI apply --include scripts
 
 chezmoi $LGR_LVL_CHEZMOI --config={{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.toml" | quote }} init
 
-## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
-if command -v git >/dev/null 2>&1; then
-    chezmoi $LGR_LVL_CHEZMOI git remote set-url origin "https://github.com/$REPO_OWNER/$REPO_DOTFILES.git"
-else
-    printf '%s\n' "Warning: git not available.  Remove url with GITHUB_PAT from '~/.local/share/chezmoi_src/.git/config'." >&2
-fi
+#### NB (2026-09): Not necessary if 'Remove token from url in config file' section in first part of executable_init script is used
+# ## Set git repo url to get $GITHUB_PAT from secure source rather than plain text in the url
+# if command -v git >/dev/null 2>&1; then
+#     chezmoi $LGR_LVL_CHEZMOI git remote set-url origin "https://github.com/$REPO_OWNER/$REPO_DOTFILES.git"
+# else
+#     printf '%s\n' "Warning: git not available.  Remove url with GITHUB_PAT from '~/.local/share/chezmoi_src/.git/config'." >&2
+# fi
 
 chezmoi $LGR_LVL_CHEZMOI update --exclude=encrypted
 
