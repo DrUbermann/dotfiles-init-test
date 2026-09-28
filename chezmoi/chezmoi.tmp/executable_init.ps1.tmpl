@@ -119,6 +119,7 @@ printf "REPO_UTIL='%s'\n" "$(printf '%s' "$REPO_UTIL" | sed "s/'/'\\\\''/g")" >>
 printf "REPO_DOTFILES='%s'\n" "$(printf '%s' "$REPO_DOTFILES" | sed "s/'/'\\\\''/g")" >> ./.env
 printf "LGR_LVL_CHEZMOI='%s'\n" "$(printf '%s' "$LGR_LVL_CHEZMOI" | sed "s/'/'\\\\''/g")" >> ./.env
 env | { grep '^LGR_' || true; } | sed 's/'"'"'/'"'"'\\'"'"''"'"'/g; s/^\([^=]*\)=\(.*\)$/\1='"'"'\2'"'"'/' >> ./.env  ## s/'/'\\''/g; s/^\([^=]*\)=\(.*\)$/\1='\2'/
+#set | grep '^LGR_' >> ./.env || true  ## only explicitly exported LGR_ variables will be used in next part of script so env is used instead of set
 
 _fpath_script_1="$(cd "$(dirname "$FPATH_SCRIPT")" && pwd -P)/$(basename "${FPATH_SCRIPT%.*}-1.${FPATH_SCRIPT##*.}")"
 if [ "$x" -eq 3 ]; then
