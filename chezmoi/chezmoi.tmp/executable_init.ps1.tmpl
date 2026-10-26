@@ -99,7 +99,7 @@ chmod -w {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi" | quote }}
 export PATH=$HOME/.local/bin:$PATH
 
 chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
-
+exit #################################################################################################################################################################################
 ## Install sudo or doas if not running as root
 if [ "$(id -u)" -ne 0 ] && ! command -v sudo >/dev/null 2>&1 && ! command -v doas >/dev/null 2>&1; then
     _s=0 ; {{ joinPath (osDir .chezmoi.workingTree) "chezmoi_src" ".excu" | quote }}/install-packages.sh sudo || _s=$?
