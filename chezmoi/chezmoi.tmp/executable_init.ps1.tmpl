@@ -97,7 +97,7 @@ ln -s {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi_cnfg" "chezmoi.to
 chmod -w {{ joinPath (osDir (osDir .chezmoi.configFile)) "chezmoi" | quote }}
 
 export PATH=$HOME/.local/bin:$PATH
-
+echo about to run $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted #################################################################################################################
 chezmoi $LGR_LVL_CHEZMOI apply --exclude scripts,encrypted
 exit #################################################################################################################################################################################
 ## Install sudo or doas if not running as root
